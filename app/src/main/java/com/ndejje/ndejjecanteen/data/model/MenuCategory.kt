@@ -1,4 +1,4 @@
-package com.ndejje.canteen.data.model
+package com.ndejje.ndejjecanteen.data.model
 
 enum class MenuCategory(val displayName: String) {
     SNACKS("Snacks"),

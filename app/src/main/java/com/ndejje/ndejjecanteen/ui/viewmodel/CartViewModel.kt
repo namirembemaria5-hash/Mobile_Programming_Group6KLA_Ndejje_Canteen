@@ -6,6 +6,7 @@ import com.ndejje.ndejjecanteen.data.model.MenuItem
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
@@ -17,65 +18,65 @@ data class CartItem(
 }
 
 class CartViewModel : ViewModel() {
-    private val _cartItems = MutableStateFlow<Map<String, CartItem>>(emptyMap())
+    private val _cartItemsMap = MutableStateFlow<Map<String, CartItem>>(emptyMap())
     
-    val cartItems: StateFlow<List<CartItem>> = _cartItems
+    val cartItems: StateFlow<List<CartItem>> = _cartItemsMap
         .map { it.values.toList() }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
+            started = SharingStarted.Eagerly,
             initialValue = emptyList()
         )
 
-    val cartItemCount: StateFlow<Int> = _cartItems
+    val cartItemCount: StateFlow<Int> = _cartItemsMap
         .map { it.values.sumOf { it.quantity } }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
+            started = SharingStarted.Eagerly,
             initialValue = 0
         )
 
-    val totalPrice: StateFlow<Double> = _cartItems
+    val totalPrice: StateFlow<Double> = _cartItemsMap
         .map { it.values.sumOf { it.menuItem.price * it.quantity } }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
+            started = SharingStarted.Eagerly,
             initialValue = 0.0
         )
 
     fun addToCart(menuItem: MenuItem) {
-        val currentMap = _cartItems.value.toMutableMap()
+        val currentMap = _cartItemsMap.value.toMutableMap()
         val existingItem = currentMap[menuItem.id]
         if (existingItem != null) {
             currentMap[menuItem.id] = existingItem.copy(quantity = existingItem.quantity + 1)
         } else {
             currentMap[menuItem.id] = CartItem(menuItem, 1)
         }
-        _cartItems.value = currentMap
+        _cartItemsMap.value = currentMap
     }
 
     fun removeFromCart(menuItemId: String) {
-        val currentMap = _cartItems.value.toMutableMap()
+        val currentMap = _cartItemsMap.value.toMutableMap()
         val existingItem = currentMap[menuItemId] ?: return
         if (existingItem.quantity > 1) {
             currentMap[menuItemId] = existingItem.copy(quantity = existingItem.quantity - 1)
         } else {
             currentMap.remove(menuItemId)
         }
-        _cartItems.value = currentMap
+        _cartItemsMap.value = currentMap
     }
 
     fun deleteFromCart(menuItemId: String) {
-        val currentMap = _cartItems.value.toMutableMap()
+        val currentMap = _cartItemsMap.value.toMutableMap()
         currentMap.remove(menuItemId)
-        _cartItems.value = currentMap
+        _cartItemsMap.value = currentMap
     }
 
     fun getItemQuantity(menuItemId: String): Int {
-        return _cartItems.value[menuItemId]?.quantity ?: 0
+        return _cartItemsMap.value[menuItemId]?.quantity ?: 0
     }
 
     fun clearCart() {
-        _cartItems.value = emptyMap()
+        _cartItemsMap.value = emptyMap()
     }
 }

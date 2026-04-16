@@ -1,5 +1,7 @@
 package com.ndejje.ndejjecanteen.ui.screens
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -15,9 +17,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ndejje.ndejjecanteen.R
 import com.ndejje.ndejjecanteen.data.model.Order
 import com.ndejje.ndejjecanteen.data.model.OrderStatus
 import com.ndejje.ndejjecanteen.ui.theme.*
@@ -34,6 +39,7 @@ fun OrderStatusScreen(
     onBack: () -> Unit
 ) {
     val order by orderViewModel.currentOrder.collectAsState()
+    val context = LocalContext.current
 
     LaunchedEffect(orderId) {
         orderViewModel.loadOrderById(orderId)
@@ -65,22 +71,87 @@ fun OrderStatusScreen(
                         .fillMaxSize()
                         .padding(paddingValues)
                         .verticalScroll(rememberScrollState())
-                        .padding(16.dp),
+                        .padding(dimensionResource(R.dimen.screen_padding)),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     // Status hero
                     OrderStatusHero(order = ord)
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_large)))
+
+                    // Map Section
+                    ord.location?.let { location ->
+                        if (location.latitude != 0.0 || location.longitude != 0.0) {
+                            DeliveryMapCard(
+                                latitude = location.latitude,
+                                longitude = location.longitude,
+                                onOpenMap = {
+                                    val gmmIntentUri = Uri.parse("google.navigation:q=${location.latitude},${location.longitude}")
+                                    val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri)
+                                    mapIntent.setPackage("com.google.android.apps.maps")
+                                    context.startActivity(mapIntent)
+                                }
+                            )
+                            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_large)))
+                        }
+                    }
 
                     // Progress tracker
                     OrderProgressTracker(currentStatus = ord.status)
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_large)))
 
                     // Order details
                     OrderDetailsCard(order = ord)
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun DeliveryMapCard(latitude: Double, longitude: Double, onOpenMap: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(dimensionResource(R.dimen.radius_extra_large)),
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Column(modifier = Modifier.padding(dimensionResource(R.dimen.screen_padding))) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(Icons.Default.Map, contentDescription = null, tint = CanteenGreen)
+                Spacer(modifier = Modifier.width(dimensionResource(R.dimen.spacing_small)))
+                Text("Delivery Location", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            }
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_medium)))
+            
+            // Static Map Placeholder
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(150.dp)
+                    .clip(RoundedCornerShape(dimensionResource(R.dimen.radius_medium)))
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color.Red, modifier = Modifier.size(dimensionResource(R.dimen.icon_size_large)))
+                    Text("Location Captured", style = MaterialTheme.typography.bodySmall)
+                    Text(String.format(Locale.getDefault(), "%.4f, %.4f", latitude, longitude),
+                         style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.screen_padding)))
+            
+            Button(
+                onClick = onOpenMap,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(dimensionResource(R.dimen.radius_medium)),
+                colors = ButtonDefaults.buttonColors(containerColor = CanteenGreen)
+            ) {
+                Icon(Icons.Default.Navigation, contentDescription = null)
+                Spacer(modifier = Modifier.width(dimensionResource(R.dimen.spacing_small)))
+                Text("Open Navigation")
             }
         }
     }
@@ -93,23 +164,25 @@ fun OrderStatusHero(order: Order) {
         OrderStatus.PENDING -> CanteenAmberContainer to "⏳"
         OrderStatus.PREPARING -> CanteenGreenContainer to "👨‍🍳"
         OrderStatus.READY -> CanteenGreen.copy(alpha = 0.15f) to "✅"
+        OrderStatus.IN_TRANSIT -> CanteenAmberContainer to "🚚"
+        OrderStatus.DELIVERED -> CanteenGreenContainer to "🏁"
         OrderStatus.CANCELLED -> MaterialTheme.colorScheme.errorContainer to "❌"
     }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(dimensionResource(R.dimen.radius_card)),
         colors = CardDefaults.cardColors(containerColor = bgColor),
         elevation = CardDefaults.cardElevation(4.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(24.dp),
+                .padding(dimensionResource(R.dimen.screen_padding_extra_large)),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(emoji, fontSize = 56.sp)
-            Spacer(modifier = Modifier.height(10.dp))
+            Text(emoji, fontSize = dimensionResource(R.dimen.text_size_emoji_large).value.sp)
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_small)))
             Text(
                 status.displayName,
                 style = MaterialTheme.typography.headlineMedium,
@@ -118,20 +191,22 @@ fun OrderStatusHero(order: Order) {
                     OrderStatus.PENDING -> CanteenBrown
                     OrderStatus.PREPARING -> CanteenGreen
                     OrderStatus.READY -> CanteenGreen
-                    OrderStatus.CANCELLED -> MaterialTheme.error
+                    OrderStatus.IN_TRANSIT -> CanteenBrown
+                    OrderStatus.DELIVERED -> CanteenGreen
+                    OrderStatus.CANCELLED -> MaterialTheme.colorScheme.error
                 }
             )
             Text(
                 "Order #${order.orderId.take(8).uppercase()}",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                modifier = Modifier.padding(top = 4.dp)
+                modifier = Modifier.padding(top = dimensionResource(R.dimen.spacing_extra_small))
             )
 
             if (status == OrderStatus.READY) {
-                Spacer(modifier = Modifier.height(10.dp))
+                Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_small)))
                 Card(
-                    shape = RoundedCornerShape(10.dp),
+                    shape = RoundedCornerShape(dimensionResource(R.dimen.spacing_small)),
                     colors = CardDefaults.cardColors(containerColor = CanteenGreen.copy(alpha = 0.2f))
                 ) {
                     Text(
@@ -139,7 +214,7 @@ fun OrderStatusHero(order: Order) {
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = CanteenGreen,
-                        modifier = Modifier.padding(12.dp)
+                        modifier = Modifier.padding(dimensionResource(R.dimen.spacing_medium))
                     )
                 }
             }
@@ -153,18 +228,20 @@ fun OrderProgressTracker(currentStatus: String) {
     val steps = listOf(
         OrderStatus.PENDING to "Order Placed",
         OrderStatus.PREPARING to "Preparing",
-        OrderStatus.READY to "Ready"
+        OrderStatus.READY to "Ready",
+        OrderStatus.IN_TRANSIT to "In Transit",
+        OrderStatus.DELIVERED to "Delivered"
     )
     val currentIndex = steps.indexOfFirst { it.first == status }.coerceAtLeast(0)
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(dimensionResource(R.dimen.radius_extra_large)),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
+        Column(modifier = Modifier.padding(dimensionResource(R.dimen.screen_padding_large))) {
             Text("Order Progress", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.screen_padding)))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -179,20 +256,18 @@ fun OrderProgressTracker(currentStatus: String) {
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(40.dp)
+                                .size(32.dp)
                                 .clip(CircleShape)
                                 .background(
-                                    when {
-                                        isCurrent -> CanteenGreen
-                                        isCompleted -> CanteenGreenLight
-                                        else -> MaterialTheme.colorScheme.surfaceVariant
-                                    }
+                                    if (isCurrent) CanteenGreen
+                                    else if (isCompleted) CanteenGreenLight
+                                    else MaterialTheme.colorScheme.surfaceVariant
                                 ),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
                                 stepStatus.emoji,
-                                fontSize = 18.sp
+                                fontSize = 14.sp
                             )
                         }
                         Spacer(modifier = Modifier.height(6.dp))
@@ -204,12 +279,12 @@ fun OrderProgressTracker(currentStatus: String) {
                         )
                     }
 
-                    if (index \u003c steps.size - 1) {
+                    if (index < steps.size - 1) {
                         HorizontalDivider(
                             modifier = Modifier
                                 .weight(0.5f)
-                                .padding(bottom = 20.dp),
-                            color = if (index \u003c currentIndex) CanteenGreenLight
+                                .padding(bottom = 24.dp),
+                            color = if (index < currentIndex) CanteenGreenLight
                             else MaterialTheme.colorScheme.surfaceVariant,
                             thickness = 2.dp
                         )
@@ -224,19 +299,19 @@ fun OrderProgressTracker(currentStatus: String) {
 fun OrderDetailsCard(order: Order) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(dimensionResource(R.dimen.radius_extra_large)),
         elevation = CardDefaults.cardElevation(2.dp)
     ) {
-        Column(modifier = Modifier.padding(20.dp)) {
+        Column(modifier = Modifier.padding(dimensionResource(R.dimen.screen_padding_large))) {
             Text("Order Items", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_medium)))
             order.items.forEach { lineItem ->
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                    modifier = Modifier.fillMaxWidth().padding(vertical = dimensionResource(R.dimen.spacing_extra_small)),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        "${lineItem.itemName} × ${lineItem.quantity}",
+                        "${lineItem.itemName} x ${lineItem.quantity}",
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Text(
@@ -246,18 +321,18 @@ fun OrderDetailsCard(order: Order) {
                     )
                 }
             }
-            HorizontalDivider(modifier = Modifier.padding(vertical = 10.dp))
+            HorizontalDivider(modifier = Modifier.padding(vertical = dimensionResource(R.dimen.spacing_small)))
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("Total", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.ExtraBold)
                 Text(formatUGX(order.totalAmount), style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.ExtraBold, color = CanteenGreen)
             }
             if (order.notes.isNotBlank()) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_small)))
                 Text("Note: ${order.notes}", style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
             }
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_small)))
             val dateFormat = SimpleDateFormat("dd MMM yyyy, hh:mm a", Locale.getDefault())
             Text(
                 "Placed: ${dateFormat.format(Date(order.createdAt))}",

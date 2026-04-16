@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "691159801652",
+    "project_id": "ndejje-canteen",
+    "storage_bucket": "ndejje-canteen.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:691159801652:android:3619698018f6b074360f61",
+        "android_client_info": {
+          "package_name": "com.ndejje.ndejjecanteen"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAeElfFhKc2XnTF18zNjDjxgeYJtr3M6zA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

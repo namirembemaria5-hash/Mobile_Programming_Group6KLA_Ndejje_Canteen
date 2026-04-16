@@ -11,9 +11,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ndejje.ndejjecanteen.R
 import com.ndejje.ndejjecanteen.data.model.Order
 import com.ndejje.ndejjecanteen.data.model.OrderStatus
 import com.ndejje.ndejjecanteen.ui.theme.*
@@ -56,8 +58,8 @@ fun OrderHistoryScreen(
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("📋", fontSize = 56.sp)
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Text("📋", fontSize = dimensionResource(R.dimen.text_size_emoji_large).value.sp)
+                    Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_medium)))
                     Text("No orders yet", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                     Text("Your order history will appear here",
                         style = MaterialTheme.typography.bodyMedium,
@@ -67,8 +69,8 @@ fun OrderHistoryScreen(
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize().padding(paddingValues),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                contentPadding = PaddingValues(dimensionResource(R.dimen.screen_padding)),
+                verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_small))
             ) {
                 items(userOrders, key = { it.orderId }) { order ->
                     OrderHistoryCard(order = order, onClick = { onOrderClick(order.orderId) })
@@ -85,6 +87,8 @@ fun OrderHistoryCard(order: Order, onClick: () -> Unit) {
         OrderStatus.PENDING -> CanteenAmber
         OrderStatus.PREPARING -> CanteenGreenLight
         OrderStatus.READY -> CanteenGreen
+        OrderStatus.IN_TRANSIT -> CanteenAmber
+        OrderStatus.DELIVERED -> CanteenGreen
         OrderStatus.CANCELLED -> MaterialTheme.colorScheme.error
     }
     val dateFormat = SimpleDateFormat("dd MMM, hh:mm a", Locale.getDefault())
@@ -93,11 +97,11 @@ fun OrderHistoryCard(order: Order, onClick: () -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(dimensionResource(R.dimen.radius_large)),
         elevation = CardDefaults.cardElevation(3.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            modifier = Modifier.fillMaxWidth().padding(dimensionResource(R.dimen.screen_padding)),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
@@ -112,7 +116,7 @@ fun OrderHistoryCard(order: Order, onClick: () -> Unit) {
                         fontWeight = FontWeight.Bold
                     )
                     Surface(
-                        shape = RoundedCornerShape(8.dp),
+                        shape = RoundedCornerShape(dimensionResource(R.dimen.radius_small)),
                         color = statusColor.copy(alpha = 0.15f)
                     ) {
                         Text(
@@ -120,18 +124,18 @@ fun OrderHistoryCard(order: Order, onClick: () -> Unit) {
                             style = MaterialTheme.typography.labelSmall,
                             color = statusColor,
                             fontWeight = FontWeight.SemiBold,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            modifier = Modifier.padding(horizontal = dimensionResource(R.dimen.spacing_small), vertical = dimensionResource(R.dimen.spacing_extra_small))
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_extra_small)))
                 Text(
                     "${order.items.size} item${if (order.items.size != 1) "s" else ""}: ${order.items.take(2).joinToString(", ") { it.itemName }}${if (order.items.size > 2) "..." else ""}",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.65f),
                     maxLines = 1
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_extra_small)))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
@@ -153,7 +157,7 @@ fun OrderHistoryCard(order: Order, onClick: () -> Unit) {
                 Icons.Default.ChevronRight,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f),
-                modifier = Modifier.padding(start = 8.dp)
+                modifier = Modifier.padding(start = dimensionResource(R.dimen.spacing_small))
             )
         }
     }

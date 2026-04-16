@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -28,25 +29,30 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ndejje.ndejjecanteen.R
+import com.ndejje.ndejjecanteen.ui.navigation.Screen
 import com.ndejje.ndejjecanteen.ui.theme.*
 import com.ndejje.ndejjecanteen.ui.viewmodel.AuthViewModel
 
 @Composable
 fun LoginScreen(
     authViewModel: AuthViewModel,
-    onLoginSuccess: () -> Unit,
+    onLoginSuccess: (String) -> Unit,
     onNavigateToRegister: () -> Unit
 ) {
     val uiState by authViewModel.uiState.collectAsState()
     val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
+    val userProfile by authViewModel.userProfile.collectAsState()
 
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
 
-    LaunchedEffect(isLoggedIn) {
-        if (isLoggedIn) onLoginSuccess()
+    LaunchedEffect(isLoggedIn, userProfile) {
+        if (isLoggedIn && userProfile != null) {
+            onLoginSuccess(userProfile?.role ?: "USER")
+        }
     }
 
     Box(
@@ -65,11 +71,11 @@ fun LoginScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Header section
-            Spacer(modifier = Modifier.height(64.dp))
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_giant)))
             Text(
                 text = "🍽️",
-                fontSize = 64.sp,
-                modifier = Modifier.padding(bottom = 8.dp)
+                fontSize = dimensionResource(R.dimen.text_size_emoji_large).value.sp,
+                modifier = Modifier.padding(bottom = dimensionResource(R.dimen.spacing_small))
             )
             Text(
                 text = "Ndejje Guild",
@@ -86,7 +92,10 @@ fun LoginScreen(
                 text = "Order food, track delivery, eat well 🥘",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f),
-                modifier = Modifier.padding(top = 4.dp, bottom = 40.dp),
+                modifier = Modifier.padding(
+                    top = dimensionResource(R.dimen.spacing_extra_small),
+                    bottom = dimensionResource(R.dimen.spacing_huge)
+                ),
                 textAlign = TextAlign.Center
             )
 
@@ -94,15 +103,15 @@ fun LoginScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
-                shape = RoundedCornerShape(28.dp),
+                    .padding(horizontal = dimensionResource(R.dimen.screen_padding_extra_large)),
+                shape = RoundedCornerShape(dimensionResource(R.dimen.radius_card)),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(12.dp)
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(28.dp),
+                        .padding(dimensionResource(R.dimen.screen_padding_extra_large)),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
@@ -115,7 +124,7 @@ fun LoginScreen(
                         "Sign in to your account",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                        modifier = Modifier.padding(bottom = 24.dp)
+                        modifier = Modifier.padding(bottom = dimensionResource(R.dimen.spacing_extra_large))
                     )
 
                     // Error message
@@ -123,17 +132,17 @@ fun LoginScreen(
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(bottom = 16.dp),
+                                .padding(bottom = dimensionResource(R.dimen.spacing_large)),
                             colors = CardDefaults.cardColors(
                                 containerColor = MaterialTheme.colorScheme.errorContainer
                             ),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(dimensionResource(R.dimen.radius_medium))
                         ) {
                             Text(
                                 text = "⚠️ ${uiState.error}",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.padding(12.dp)
+                                modifier = Modifier.padding(dimensionResource(R.dimen.spacing_medium))
                             )
                         }
                     }
@@ -159,8 +168,8 @@ fun LoginScreen(
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 16.dp),
-                        shape = RoundedCornerShape(14.dp),
+                            .padding(bottom = dimensionResource(R.dimen.spacing_large)),
+                        shape = RoundedCornerShape(dimensionResource(R.dimen.radius_button)),
                         singleLine = true
                     )
 
@@ -199,8 +208,8 @@ fun LoginScreen(
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 24.dp),
-                        shape = RoundedCornerShape(14.dp),
+                            .padding(bottom = dimensionResource(R.dimen.spacing_extra_large)),
+                        shape = RoundedCornerShape(dimensionResource(R.dimen.radius_button)),
                         singleLine = true
                     )
 
@@ -209,8 +218,8 @@ fun LoginScreen(
                         onClick = { authViewModel.signIn(email, password) },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(54.dp),
-                        shape = RoundedCornerShape(14.dp),
+                            .height(dimensionResource(R.dimen.box_size_large)),
+                        shape = RoundedCornerShape(dimensionResource(R.dimen.radius_button)),
                         enabled = email.isNotBlank() && password.isNotBlank() && !uiState.isLoading,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary
@@ -218,7 +227,7 @@ fun LoginScreen(
                     ) {
                         if (uiState.isLoading) {
                             CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp),
+                                modifier = Modifier.size(dimensionResource(R.dimen.icon_size_medium)),
                                 color = MaterialTheme.colorScheme.onPrimary,
                                 strokeWidth = 2.dp
                             )
@@ -231,7 +240,7 @@ fun LoginScreen(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_large)))
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically
@@ -252,7 +261,7 @@ fun LoginScreen(
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_huge)))
         }
     }
 }

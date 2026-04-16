@@ -1,4 +1,4 @@
-package com.ndejje.canteen.ui.screens
+package com.ndejje.ndejjecanteen.ui.screens
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
@@ -15,17 +15,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.ndejje.canteen.data.model.MenuCategory
-import com.ndejje.canteen.data.model.MenuItem
-import com.ndejje.canteen.ui.theme.*
-import com.ndejje.canteen.ui.viewmodel.CartViewModel
-import com.ndejje.canteen.ui.viewmodel.MenuViewModel
-import com.ndejje.canteen.utils.formatUGX
-import com.ndejje.canteen.utils.isWeekend
-import java.util.Calendar
+import com.ndejje.ndejjecanteen.R
+import com.ndejje.ndejjecanteen.data.model.MenuCategory
+import com.ndejje.ndejjecanteen.data.model.MenuItem
+import com.ndejje.ndejjecanteen.ui.theme.*
+import com.ndejje.ndejjecanteen.ui.viewmodel.CartViewModel
+import com.ndejje.ndejjecanteen.ui.viewmodel.MenuViewModel
+import com.ndejje.ndejjecanteen.utils.formatUGX
+import com.ndejje.ndejjecanteen.utils.getItemEmoji
+import com.ndejje.ndejjecanteen.utils.isWeekend
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,8 +73,8 @@ fun MenuScreen(
             TopAppBar(
                 title = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(cardData?.emoji ?: "🍽️", fontSize = 22.sp,
-                            modifier = Modifier.padding(end = 8.dp))
+                        Text(cardData?.emoji ?: "🍽️", fontSize = dimensionResource(R.dimen.text_size_heading_medium).value.sp,
+                            modifier = Modifier.padding(end = dimensionResource(R.dimen.spacing_small)))
                         Text(
                             menuCategory.displayName,
                             style = MaterialTheme.typography.headlineMedium,
@@ -105,26 +107,26 @@ fun MenuScreen(
                 EmptyMenuState(categoryName = menuCategory.displayName)
             } else {
                 LazyColumn(
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    contentPadding = PaddingValues(dimensionResource(R.dimen.screen_padding)),
+                    verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_small))
                 ) {
                     // Special weekday notice for Special Orders
                     if (menuCategory == MenuCategory.SPECIAL_ORDERS && !todayIsWeekend) {
                         item {
                             Card(
                                 modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(16.dp),
+                                shape = RoundedCornerShape(dimensionResource(R.dimen.radius_large)),
                                 colors = CardDefaults.cardColors(
                                     containerColor = CanteenAmberContainer
                                 ),
                                 border = androidx.compose.foundation.BorderStroke(1.dp, CanteenAmber)
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(14.dp),
+                                    modifier = Modifier.padding(dimensionResource(R.dimen.radius_large)),
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text("📅", fontSize = 22.sp)
-                                    Spacer(modifier = Modifier.width(10.dp))
+                                    Text("📅", fontSize = dimensionResource(R.dimen.text_size_heading_medium).value.sp)
+                                    Spacer(modifier = Modifier.width(dimensionResource(R.dimen.spacing_small)))
                                     Column {
                                         Text(
                                             "Pre-Order Available!",
@@ -159,7 +161,7 @@ fun MenuScreen(
                                         groupLabels[key] ?: key,
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold,
-                                        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+                                        modifier = Modifier.padding(top = dimensionResource(R.dimen.spacing_small), bottom = dimensionResource(R.dimen.spacing_extra_small)),
                                         color = DrinkColor
                                     )
                                 }
@@ -182,7 +184,7 @@ fun MenuScreen(
                                         "🍚 Choose Your Main",
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold,
-                                        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+                                        modifier = Modifier.padding(top = dimensionResource(R.dimen.spacing_small), bottom = dimensionResource(R.dimen.spacing_extra_small)),
                                         color = BuffetColor
                                     )
                                 }
@@ -197,7 +199,7 @@ fun MenuScreen(
                                         "🥘 Add a Sauce / Side",
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Bold,
-                                        modifier = Modifier.padding(top = 12.dp, bottom = 4.dp),
+                                        modifier = Modifier.padding(top = dimensionResource(R.dimen.spacing_medium), bottom = dimensionResource(R.dimen.spacing_extra_small)),
                                         color = BuffetColor
                                     )
                                 }
@@ -234,12 +236,13 @@ fun MenuItemCard(
     isWeekendOnly: Boolean,
     todayIsWeekend: Boolean
 ) {
-    val quantity = cartViewModel.getItemQuantity(item.id)
+    val quantityMap by cartViewModel.cartItems.collectAsState()
+    val quantity = remember(quantityMap) { cartViewModel.getItemQuantity(item.id) }
     val isUnavailable = isWeekendOnly && !todayIsWeekend && !item.isWeekendOnly.not()
 
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(dimensionResource(R.dimen.radius_large)),
         elevation = CardDefaults.cardElevation(3.dp),
         colors = CardDefaults.cardColors(
             containerColor = if (isUnavailable)
@@ -250,21 +253,21 @@ fun MenuItemCard(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(14.dp),
+                .padding(dimensionResource(R.dimen.radius_button)),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Emoji icon
             Box(
                 modifier = Modifier
-                    .size(52.dp)
-                    .clip(RoundedCornerShape(12.dp))
+                    .size(dimensionResource(R.dimen.box_size_large))
+                    .clip(RoundedCornerShape(dimensionResource(R.dimen.radius_medium)))
                     .background(accentColor.copy(alpha = 0.12f)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(getItemEmoji(item), fontSize = 26.sp)
+                Text(getItemEmoji(item), fontSize = dimensionResource(R.dimen.text_size_heading_large).value.sp)
             }
 
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(dimensionResource(R.dimen.spacing_medium)))
 
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -274,16 +277,16 @@ fun MenuItemCard(
                         fontWeight = FontWeight.SemiBold
                     )
                     if (item.isWeekendOnly) {
-                        Spacer(modifier = Modifier.width(6.dp))
+                        Spacer(modifier = Modifier.width(dimensionResource(R.dimen.spacing_small)))
                         Surface(
-                            shape = RoundedCornerShape(6.dp),
+                            shape = RoundedCornerShape(dimensionResource(R.dimen.radius_small)),
                             color = SpecialColor.copy(alpha = 0.15f)
                         ) {
                             Text(
                                 "Weekend",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = SpecialColor,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                modifier = Modifier.padding(horizontal = dimensionResource(R.dimen.spacing_small), vertical = 2.dp)
                             )
                         }
                     }
@@ -302,7 +305,7 @@ fun MenuItemCard(
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
                     color = accentColor,
-                    modifier = Modifier.padding(top = 4.dp)
+                    modifier = Modifier.padding(top = dimensionResource(R.dimen.spacing_extra_small))
                 )
             }
 
@@ -311,8 +314,8 @@ fun MenuItemCard(
                 if (quantity == 0) {
                     FilledTonalButton(
                         onClick = { cartViewModel.addToCart(item) },
-                        shape = RoundedCornerShape(10.dp),
-                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp),
+                        shape = RoundedCornerShape(dimensionResource(R.dimen.radius_small)),
+                        contentPadding = PaddingValues(horizontal = dimensionResource(R.dimen.radius_button), vertical = 6.dp),
                         colors = ButtonDefaults.filledTonalButtonColors(
                             containerColor = accentColor.copy(alpha = 0.15f),
                             contentColor = accentColor
@@ -323,18 +326,18 @@ fun MenuItemCard(
                 } else {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_small))
                     ) {
                         FilledIconButton(
                             onClick = { cartViewModel.removeFromCart(item.id) },
-                            modifier = Modifier.size(32.dp),
+                            modifier = Modifier.size(dimensionResource(R.dimen.icon_size_large)),
                             colors = IconButtonDefaults.filledIconButtonColors(
                                 containerColor = accentColor.copy(alpha = 0.15f),
                                 contentColor = accentColor
                             )
                         ) {
                             Icon(Icons.Default.Remove, contentDescription = "Decrease",
-                                modifier = Modifier.size(16.dp))
+                                modifier = Modifier.size(dimensionResource(R.dimen.screen_padding)))
                         }
                         Text(
                             text = quantity.toString(),
@@ -344,14 +347,14 @@ fun MenuItemCard(
                         )
                         FilledIconButton(
                             onClick = { cartViewModel.addToCart(item) },
-                            modifier = Modifier.size(32.dp),
+                            modifier = Modifier.size(dimensionResource(R.dimen.icon_size_large)),
                             colors = IconButtonDefaults.filledIconButtonColors(
                                 containerColor = accentColor,
                                 contentColor = Color.White
                             )
                         ) {
                             Icon(Icons.Default.Add, contentDescription = "Increase",
-                                modifier = Modifier.size(16.dp))
+                                modifier = Modifier.size(dimensionResource(R.dimen.screen_padding)))
                         }
                     }
                 }
@@ -370,8 +373,8 @@ fun MenuItemCard(
 fun EmptyMenuState(categoryName: String) {
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("🍽️", fontSize = 56.sp)
-            Spacer(modifier = Modifier.height(12.dp))
+            Text("🍽️", fontSize = dimensionResource(R.dimen.text_size_emoji_large).value.sp)
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_medium)))
             Text(
                 "No $categoryName items yet",
                 style = MaterialTheme.typography.titleLarge,
@@ -383,31 +386,5 @@ fun EmptyMenuState(categoryName: String) {
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
             )
         }
-    }
-}
-
-fun getItemEmoji(item: MenuItem): String {
-    return when {
-        item.name.contains("Mandaazi", ignoreCase = true) -> "🍩"
-        item.name.contains("Samosa", ignoreCase = true) -> "🥟"
-        item.name.contains("Cassava", ignoreCase = true) -> "🍟"
-        item.name.contains("Kikomando", ignoreCase = true) -> "🫓"
-        item.name.contains("Water", ignoreCase = true) -> "💧"
-        item.name.contains("Energy", ignoreCase = true) || item.name.contains("Bull", ignoreCase = true) || item.name.contains("Monster", ignoreCase = true) || item.name.contains("Sting", ignoreCase = true) -> "⚡"
-        item.name.contains("Juice", ignoreCase = true) -> "🍹"
-        item.name.contains("Soda", ignoreCase = true) || item.name.contains("Cola", ignoreCase = true) || item.name.contains("Pepsi", ignoreCase = true) || item.name.contains("Mirinda", ignoreCase = true) || item.name.contains("Sprite", ignoreCase = true) -> "🥤"
-        item.name.contains("Coffee", ignoreCase = true) -> "☕"
-        item.name.contains("Tea", ignoreCase = true) -> "🍵"
-        item.name.contains("Rice", ignoreCase = true) -> "🍚"
-        item.name.contains("Matooke", ignoreCase = true) -> "🍌"
-        item.name.contains("Posho", ignoreCase = true) -> "🫓"
-        item.name.contains("Chapati", ignoreCase = true) -> "🫓"
-        item.name.contains("Beef", ignoreCase = true) -> "🥩"
-        item.name.contains("Chicken", ignoreCase = true) -> "🍗"
-        item.name.contains("Beans", ignoreCase = true) -> "🫘"
-        item.name.contains("Egg", ignoreCase = true) -> "🍳"
-        item.name.contains("Lusaniya", ignoreCase = true) -> "🔥"
-        item.name.contains("Pasta", ignoreCase = true) -> "🍝"
-        else -> "🍽️"
     }
 }

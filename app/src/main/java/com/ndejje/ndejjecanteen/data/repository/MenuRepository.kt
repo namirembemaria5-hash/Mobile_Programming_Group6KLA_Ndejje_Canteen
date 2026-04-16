@@ -27,6 +27,20 @@ class MenuRepository {
         } catch (_: Exception) {}
     }
 
+    fun getAllMenuItems(): Flow<List<MenuItem>> = callbackFlow {
+        val listener = menuCollection.addSnapshotListener { snapshot, error ->
+            if (error != null) {
+                trySend(emptyList())
+                return@addSnapshotListener
+            }
+            val items = snapshot?.documents?.mapNotNull {
+                it.toObject(MenuItem::class.java)
+            } ?: emptyList()
+            trySend(items)
+        }
+        awaitClose { listener.remove() }
+    }
+
     fun getMenuItemsByCategory(category: MenuCategory): Flow<List<MenuItem>> = callbackFlow {
         val listener = menuCollection
             .whereEqualTo("category", category.name)
@@ -54,5 +68,16 @@ class MenuRepository {
                 trySend(items)
             }
         awaitClose { listener.remove() }
+    }
+
+    suspend fun updateItemAvailability(itemId: String, isAvailable: Boolean): Boolean {
+        return try {
+            menuCollection.document(itemId)
+                .update("isAvailable", isAvailable)
+                .await()
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
 }

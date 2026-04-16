@@ -1,12 +1,6 @@
-package com.ndejje.canteen.data.model
+package com.ndejje.ndejjecanteen.data.model
 
-enum class MenuCategory(val displayName: String) {
-    SNACKS("Snacks"),
-    DRINKS("Drinks"),
-    TEA_COFFEE("Tea & Coffee"),
-    BUFFET("Buffet"),
-    SPECIAL_ORDERS("Special Orders")
-}
+import com.google.firebase.firestore.PropertyName
 
 data class MenuItem(
     val id: String = "",
@@ -15,18 +9,25 @@ data class MenuItem(
     val price: Double = 0.0,
     val category: String = MenuCategory.SNACKS.name,
     val imageUrl: String = "",
-    val isAvailable: Boolean = true,
-    val isWeekendOnly: Boolean = false,
-    val subCategory: String = "", // e.g., for drinks: "energy", "water", "soda", "juice"
-    val isSauceOption: Boolean = false
+    
+    @get:PropertyName("isAvailable")
+    @set:PropertyName("isAvailable")
+    var isAvailable: Boolean = true,
+    
+    @get:PropertyName("isWeekendOnly")
+    @set:PropertyName("isWeekendOnly")
+    var isWeekendOnly: Boolean = false,
+    
+    val subCategory: String = "",
+    
+    @get:PropertyName("isSauceOption")
+    @set:PropertyName("isSauceOption")
+    var isSauceOption: Boolean = false
 ) {
-    // No-argument constructor required by Firestore
-    constructor() : this("", "", "", 0.0, MenuCategory.SNACKS.name, "", true, false, "")
+    constructor() : this("", "", "", 0.0, MenuCategory.SNACKS.name, "", true, false, "", false)
 }
 
-// Predefined menu items for seeding Firestore
 object DefaultMenuItems {
-
     val snacks = listOf(
         MenuItem("snack_1", "Mandaazi", "Fresh, warm Ugandan doughnuts", 500.0, MenuCategory.SNACKS.name),
         MenuItem("snack_2", "Samosas", "Crispy triangular pastry filled with spiced meat or veggies", 1000.0, MenuCategory.SNACKS.name),

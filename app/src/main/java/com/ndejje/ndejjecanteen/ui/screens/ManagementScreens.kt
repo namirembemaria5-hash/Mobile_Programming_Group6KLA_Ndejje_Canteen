@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -19,45 +20,78 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ndejje.ndejjecanteen.R
 import com.ndejje.ndejjecanteen.data.model.Order
 import com.ndejje.ndejjecanteen.data.model.OrderStatus
-import com.ndejje.ndejjecanteen.data.model.PaymentMethod
+import com.ndejje.ndejjecanteen.data.model.MenuItem
 import com.ndejje.ndejjecanteen.ui.theme.*
 import com.ndejje.ndejjecanteen.ui.viewmodel.ManagementViewModel
 import com.ndejje.ndejjecanteen.utils.formatUGX
-import java.text.SimpleDateFormat
-import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AdminDashboardScreen(viewModel: ManagementViewModel) {
-    val orders by viewModel.allOrders.collectAsState()
+fun AdminDashboardScreen(
+    viewModel: ManagementViewModel,
+    onLogout: () -> Unit
+) {
+    val analytics by viewModel.analytics.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
 
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("Admin Dashboard", fontWeight = FontWeight.Bold) })
+            TopAppBar(
+                title = { Text("Admin Dashboard", fontWeight = FontWeight.Bold) },
+                actions = {
+                    IconButton(onClick = onLogout) {
+                        Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Logout")
+                    }
+                }
+            )
         }
     ) { padding ->
         if (isLoading) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
         } else {
-            LazyColumn(modifier = Modifier.padding(padding).padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            LazyColumn(
+                modifier = Modifier.padding(padding).padding(dimensionResource(R.dimen.screen_padding)), 
+                verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_large))
+            ) {
                 item {
-                    Text("Order Statistics", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                    Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        StatCard("Total", orders.size.toString(), Icons.Default.Receipt, Color.Blue, Modifier.weight(1f))
-                        StatCard("Pending", orders.count { it.status == OrderStatus.PENDING.name }.toString(), Icons.Default.Timer, CanteenAmber, Modifier.weight(1f))
-                    }
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        StatCard("Revenue", formatUGX(orders.sumOf { it.totalAmount }), Icons.Default.Payments, CanteenGreen, Modifier.weight(1f))
+                    Text("Daily Analytics", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Row(
+                        Modifier.fillMaxWidth().padding(vertical = dimensionResource(R.dimen.spacing_small)), 
+                        horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_small))
+                    ) {
+                        StatCard("Orders", analytics.dailyCount.toString(), Icons.Default.Receipt, Color.Blue, Modifier.weight(1f))
+                        StatCard("Revenue", formatUGX(analytics.dailyRevenue), Icons.Default.Payments, CanteenGreen, Modifier.weight(1f))
                     }
                 }
-                item { Text("Recent Activity", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold) }
-                items(orders.take(10)) { order -> ManagementOrderCard(order) { /* Navigate to detail */ } }
+                
+                item {
+                    Text("Weekly Analytics", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Row(
+                        Modifier.fillMaxWidth().padding(vertical = dimensionResource(R.dimen.spacing_small)), 
+                        horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_small))
+                    ) {
+                        StatCard("Orders", analytics.weeklyCount.toString(), Icons.Default.BarChart, Color.Magenta, Modifier.weight(1f))
+                        StatCard("Revenue", formatUGX(analytics.weeklyRevenue), Icons.Default.Payments, CanteenGreen, Modifier.weight(1f))
+                    }
+                }
+
+                item {
+                    Text("Monthly Analytics", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Row(
+                        Modifier.fillMaxWidth().padding(vertical = dimensionResource(R.dimen.spacing_small)), 
+                        horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_small))
+                    ) {
+                        StatCard("Orders", analytics.monthlyCount.toString(), Icons.Default.PieChart, CanteenAmber, Modifier.weight(1f))
+                        StatCard("Revenue", formatUGX(analytics.monthlyRevenue), Icons.Default.Payments, CanteenGreen, Modifier.weight(1f))
+                    }
+                }
             }
         }
     }
@@ -67,14 +101,83 @@ fun AdminDashboardScreen(viewModel: ManagementViewModel) {
 @Composable
 fun KitchenOrdersScreen(viewModel: ManagementViewModel) {
     val orders by viewModel.allOrders.collectAsState()
+    val menuItems by viewModel.menuItems.collectAsState()
     val kitchenOrders = orders.filter { it.status == OrderStatus.PENDING.name || it.status == OrderStatus.PREPARING.name }
+    
+    var selectedTab by remember { mutableIntStateOf(0) }
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Kitchen Orders", fontWeight = FontWeight.Bold) }) }
+        topBar = {
+            TopAppBar(
+                title = { Text("Kitchen Management", fontWeight = FontWeight.Bold) }
+            )
+        }
     ) { padding ->
-        LazyColumn(modifier = Modifier.padding(padding).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            items(kitchenOrders) { order ->
-                KitchenOrderCard(order, onStatusUpdate = { viewModel.updateStatus(order.orderId, it) })
+        Column(modifier = Modifier.padding(padding)) {
+            TabRow(selectedTabIndex = selectedTab) {
+                Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }) {
+                    Text("Orders (${kitchenOrders.size})", modifier = Modifier.padding(16.dp))
+                }
+                Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }) {
+                    Text("Inventory", modifier = Modifier.padding(16.dp))
+                }
+            }
+
+            if (selectedTab == 0) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize().padding(dimensionResource(R.dimen.screen_padding)), 
+                    verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_medium))
+                ) {
+                    if (kitchenOrders.isEmpty()) {
+                        item { Box(Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) { Text("No active orders") } }
+                    }
+                    items(kitchenOrders) { order ->
+                        KitchenOrderCard(order, onStatusUpdate = { viewModel.updateStatus(order.orderId, it) })
+                    }
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize().padding(dimensionResource(R.dimen.screen_padding)),
+                    verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_small))
+                ) {
+                    items(menuItems) { item ->
+                        InventoryItemRow(
+                            item = item,
+                            onToggle = { isAvailable -> viewModel.toggleItemAvailability(item.id, isAvailable) }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun InventoryItemRow(item: MenuItem, onToggle: (Boolean) -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(dimensionResource(R.dimen.radius_medium))
+    ) {
+        Row(
+            modifier = Modifier.padding(dimensionResource(R.dimen.spacing_medium)),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(item.name, fontWeight = FontWeight.Bold)
+                Text(item.category, style = MaterialTheme.typography.bodySmall)
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    if (item.isAvailable) "Available" else "Out of Stock",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = if (item.isAvailable) CanteenGreen else Color.Red,
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+                Switch(
+                    checked = item.isAvailable,
+                    onCheckedChange = onToggle
+                )
             }
         }
     }
@@ -84,13 +187,19 @@ fun KitchenOrdersScreen(viewModel: ManagementViewModel) {
 @Composable
 fun DeliveryOrdersScreen(viewModel: ManagementViewModel) {
     val orders by viewModel.allOrders.collectAsState()
-    val deliveryOrders = orders.filter { it.status == OrderStatus.READY.name }
+    val deliveryOrders = orders.filter { it.status == OrderStatus.READY.name || it.status == OrderStatus.IN_TRANSIT.name }
     val context = LocalContext.current
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Delivery Queue", fontWeight = FontWeight.Bold) }) }
     ) { padding ->
-        LazyColumn(modifier = Modifier.padding(padding).padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        LazyColumn(
+            modifier = Modifier.padding(padding).padding(dimensionResource(R.dimen.screen_padding)), 
+            verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_medium))
+        ) {
+            if (deliveryOrders.isEmpty()) {
+                item { Box(Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) { Text("Queue is empty") } }
+            }
             items(deliveryOrders) { order ->
                 DeliveryOrderCard(
                     order = order,
@@ -100,7 +209,7 @@ fun DeliveryOrdersScreen(viewModel: ManagementViewModel) {
                             context.startActivity(Intent(Intent.ACTION_VIEW, uri).setPackage("com.google.android.apps.maps"))
                         }
                     },
-                    onComplete = { viewModel.updateStatus(order.orderId, OrderStatus.READY) } // Assuming ready is a state, maybe add COMPLETED
+                    onStatusUpdate = { viewModel.updateStatus(order.orderId, it) }
                 )
             }
         }
@@ -109,8 +218,8 @@ fun DeliveryOrdersScreen(viewModel: ManagementViewModel) {
 
 @Composable
 fun StatCard(label: String, value: String, icon: androidx.compose.ui.graphics.vector.ImageVector, color: Color, modifier: Modifier = Modifier) {
-    Card(modifier = modifier, shape = RoundedCornerShape(16.dp)) {
-        Column(Modifier.padding(16.dp)) {
+    Card(modifier = modifier, shape = RoundedCornerShape(dimensionResource(R.dimen.radius_large))) {
+        Column(Modifier.padding(dimensionResource(R.dimen.screen_padding))) {
             Icon(icon, null, tint = color)
             Text(label, style = MaterialTheme.typography.labelMedium)
             Text(value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
@@ -120,8 +229,8 @@ fun StatCard(label: String, value: String, icon: androidx.compose.ui.graphics.ve
 
 @Composable
 fun ManagementOrderCard(order: Order, onClick: () -> Unit) {
-    Card(Modifier.fillMaxWidth().clickable { onClick() }, shape = RoundedCornerShape(12.dp)) {
-        Row(Modifier.padding(16.dp), verticalAlignment = Alignment.CenterVertically) {
+    Card(Modifier.fillMaxWidth().clickable { onClick() }, shape = RoundedCornerShape(dimensionResource(R.dimen.radius_medium))) {
+        Row(Modifier.padding(dimensionResource(R.dimen.screen_padding)), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text("#${order.orderId.take(8).uppercase()}", fontWeight = FontWeight.Bold)
                 Text(order.userName, style = MaterialTheme.typography.bodySmall)
@@ -133,20 +242,24 @@ fun ManagementOrderCard(order: Order, onClick: () -> Unit) {
 
 @Composable
 fun KitchenOrderCard(order: Order, onStatusUpdate: (OrderStatus) -> Unit) {
-    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
-        Column(Modifier.padding(16.dp)) {
+    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(dimensionResource(R.dimen.radius_large))) {
+        Column(Modifier.padding(dimensionResource(R.dimen.screen_padding))) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("#${order.orderId.take(8).uppercase()}", fontWeight = FontWeight.Bold)
-                Text(if (order.status == OrderStatus.PENDING.name) "NEW" else "PREPARING", 
-                    color = if (order.status == OrderStatus.PENDING.name) Color.Red else CanteenAmber)
+                val statusColor = when(order.status) {
+                    OrderStatus.PENDING.name -> Color.Red
+                    OrderStatus.PREPARING.name -> CanteenAmber
+                    else -> CanteenGreen
+                }
+                Text(order.status, color = statusColor, fontWeight = FontWeight.Bold)
             }
             order.items.forEach { Text("• ${it.itemName} x${it.quantity}") }
             if (order.notes.isNotBlank()) Text("Note: ${order.notes}", color = Color.Gray, style = MaterialTheme.typography.bodySmall)
             
-            Row(Modifier.fillMaxWidth().padding(top = 12.dp), horizontalArrangement = Arrangement.End) {
+            Row(Modifier.fillMaxWidth().padding(top = dimensionResource(R.dimen.spacing_medium)), horizontalArrangement = Arrangement.End) {
                 if (order.status == OrderStatus.PENDING.name) {
                     Button(onClick = { onStatusUpdate(OrderStatus.PREPARING) }) { Text("Start Preparing") }
-                } else {
+                } else if (order.status == OrderStatus.PREPARING.name) {
                     Button(onClick = { onStatusUpdate(OrderStatus.READY) }, colors = ButtonDefaults.buttonColors(containerColor = CanteenGreen)) { Text("Ready for Pickup") }
                 }
             }
@@ -155,23 +268,33 @@ fun KitchenOrderCard(order: Order, onStatusUpdate: (OrderStatus) -> Unit) {
 }
 
 @Composable
-fun DeliveryOrderCard(order: Order, onNavigate: () -> Unit, onComplete: () -> Unit) {
-    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)) {
-        Column(Modifier.padding(16.dp)) {
-            Text("Order for ${order.userName}", fontWeight = FontWeight.Bold)
+fun DeliveryOrderCard(order: Order, onNavigate: () -> Unit, onStatusUpdate: (OrderStatus) -> Unit) {
+    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(dimensionResource(R.dimen.radius_large))) {
+        Column(Modifier.padding(dimensionResource(R.dimen.screen_padding))) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text("Order for ${order.userName}", fontWeight = FontWeight.Bold)
+                Text(order.status, color = CanteenAmber, fontWeight = FontWeight.Bold)
+            }
             Text(order.userPhone, style = MaterialTheme.typography.bodySmall)
             Text("Items: ${order.items.joinToString { it.itemName }}")
             
-            Divider(Modifier.padding(vertical = 8.dp))
+            HorizontalDivider(Modifier.padding(vertical = dimensionResource(R.dimen.spacing_small)))
             
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_small))) {
                 OutlinedButton(onClick = onNavigate, Modifier.weight(1f)) {
                     Icon(Icons.Default.Navigation, null)
-                    Spacer(Modifier.width(4.dp))
+                    Spacer(Modifier.width(dimensionResource(R.dimen.spacing_extra_small)))
                     Text("Map")
                 }
-                Button(onClick = onComplete, Modifier.weight(1f), colors = ButtonDefaults.buttonColors(containerColor = CanteenGreen)) {
-                    Text("Mark Delivered")
+                
+                if (order.status == OrderStatus.READY.name) {
+                    Button(onClick = { onStatusUpdate(OrderStatus.IN_TRANSIT) }, Modifier.weight(1f)) {
+                        Text("Start Delivery")
+                    }
+                } else if (order.status == OrderStatus.IN_TRANSIT.name) {
+                    Button(onClick = { onStatusUpdate(OrderStatus.DELIVERED) }, Modifier.weight(1f), colors = ButtonDefaults.buttonColors(containerColor = CanteenGreen)) {
+                        Text("Mark Delivered")
+                    }
                 }
             }
         }

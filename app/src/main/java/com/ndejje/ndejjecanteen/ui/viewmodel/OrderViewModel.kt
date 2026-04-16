@@ -1,11 +1,10 @@
-package com.ndejje.canteen.ui.viewmodel
+package com.ndejje.ndejjecanteen.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ndejje.canteen.data.model.Order
-import com.ndejje.canteen.data.model.OrderStatus
-import com.ndejje.canteen.data.model.OrderLocation
-import com.ndejje.canteen.data.repository.OrderRepository
+import com.ndejje.ndejjecanteen.data.model.*
+import com.ndejje.ndejjecanteen.data.repository.OrderRepository
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,6 +13,7 @@ import kotlinx.coroutines.launch
 sealed class OrderUiState {
     object Idle : OrderUiState()
     object Loading : OrderUiState()
+    data class ProcessingPayment(val method: String) : OrderUiState()
     data class Success(val orderId: String) : OrderUiState()
     data class Error(val message: String) : OrderUiState()
 }
@@ -38,23 +38,44 @@ class OrderViewModel : ViewModel() {
         location: OrderLocation,
         isPreOrder: Boolean,
         preOrderDate: String,
-        notes: String
+        notes: String,
+        paymentMethod: PaymentMethod
     ) {
         viewModelScope.launch {
             _orderUiState.value = OrderUiState.Loading
             
+            // Simulate payment processing for Mobile Money
+            if (paymentMethod != PaymentMethod.CASH) {
+                _orderUiState.value = OrderUiState.ProcessingPayment(paymentMethod.displayName)
+                delay(3000) // 3-second simulation for MoMo prompt
+            }
+
+            val orderItems = cartItems.map { 
+                OrderItem(
+                    itemId = it.menuItem.id,
+                    itemName = it.menuItem.name,
+                    quantity = it.quantity,
+                    price = it.menuItem.price,
+                    subtotal = it.subtotal
+                )
+            }
+
             val order = Order(
                 userId = userId,
                 userName = userName,
                 userPhone = userPhone,
-                items = cartItems.map { it.menuItem.id }, // Simplification for Order model
-                totalPrice = cartItems.sumOf { it.menuItem.price * it.quantity },
+                items = orderItems,
+                totalAmount = cartItems.sumOf { it.subtotal },
                 location = location,
                 isPreOrder = isPreOrder,
                 preOrderDate = preOrderDate,
                 notes = notes,
-                status = OrderStatus.PENDING,
-                createdAt = System.currentTimeMillis()
+                status = OrderStatus.PENDING.name,
+                paymentMethod = paymentMethod.name,
+                paymentStatus = if (paymentMethod == PaymentMethod.CASH) 
+                    PaymentStatus.PENDING.name else PaymentStatus.COMPLETED.name,
+                createdAt = System.currentTimeMillis(),
+                updatedAt = System.currentTimeMillis()
             )
 
             val result = repository.placeOrder(order)

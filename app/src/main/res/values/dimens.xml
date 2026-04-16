@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Screen paddings -->
+    <dimen name="screen_padding">16dp</dimen>
+    <dimen name="screen_padding_large">20dp</dimen>
+    <dimen name="screen_padding_extra_large">24dp</dimen>
+
+    <!-- Component spacing -->
+    <dimen name="spacing_extra_small">4dp</dimen>
+    <dimen name="spacing_small">8dp</dimen>
+    <dimen name="spacing_medium">12dp</dimen>
+    <dimen name="spacing_large">16dp</dimen>
+    <dimen name="spacing_extra_large">24dp</dimen>
+    <dimen name="spacing_huge">32dp</dimen>
+    <dimen name="spacing_giant">48dp</dimen>
+
+    <!-- Corner Radii -->
+    <dimen name="radius_small">8dp</dimen>
+    <dimen name="radius_medium">12dp</dimen>
+    <dimen name="radius_large">16dp</dimen>
+    <dimen name="radius_extra_large">20dp</dimen>
+    <dimen name="radius_card">24dp</dimen>
+    <dimen name="radius_button">14dp</dimen>
+
+    <!-- Icon and Box sizes -->
+    <dimen name="icon_size_small">16dp</dimen>
+    <dimen name="icon_size_medium">24dp</dimen>
+    <dimen name="icon_size_large">32dp</dimen>
+    <dimen name="box_size_medium">48dp</dimen>
+    <dimen name="box_size_large">52dp</dimen>
+    <dimen name="box_size_extra_large">56dp</dimen>
+
+    <!-- Text Sizes -->
+    <dimen name="text_size_small">12sp</dimen>
+    <dimen name="text_size_medium">14sp</dimen>
+    <dimen name="text_size_large">16sp</dimen>
+    <dimen name="text_size_heading_small">18sp</dimen>
+    <dimen name="text_size_heading_medium">22sp</dimen>
+    <dimen name="text_size_heading_large">24sp</dimen>
+    <dimen name="text_size_display">32sp</dimen>
+    <dimen name="text_size_emoji_large">56sp</dimen>
+</resources>

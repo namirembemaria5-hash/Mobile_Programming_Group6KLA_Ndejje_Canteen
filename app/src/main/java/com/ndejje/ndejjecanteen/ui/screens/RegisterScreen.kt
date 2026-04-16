@@ -18,6 +18,7 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -26,6 +27,7 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ndejje.ndejjecanteen.R
 import com.ndejje.ndejjecanteen.ui.theme.*
 import com.ndejje.ndejjecanteen.ui.viewmodel.AuthViewModel
 
@@ -67,11 +69,11 @@ fun RegisterScreen(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(48.dp))
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_giant)))
             Text(
                 text = "🍳",
-                fontSize = 56.sp,
-                modifier = Modifier.padding(bottom = 8.dp)
+                fontSize = dimensionResource(R.dimen.text_size_emoji_large).value.sp,
+                modifier = Modifier.padding(bottom = dimensionResource(R.dimen.spacing_small))
             )
             Text(
                 text = "Join Ndejje Canteen",
@@ -83,21 +85,21 @@ fun RegisterScreen(
                 text = "Create an account to start ordering",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
-                modifier = Modifier.padding(bottom = 32.dp)
+                modifier = Modifier.padding(bottom = dimensionResource(R.dimen.spacing_huge))
             )
 
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
-                shape = RoundedCornerShape(28.dp),
+                    .padding(horizontal = dimensionResource(R.dimen.screen_padding_extra_large)),
+                shape = RoundedCornerShape(dimensionResource(R.dimen.radius_card)),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
                 elevation = CardDefaults.cardElevation(8.dp)
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(24.dp),
+                        .padding(dimensionResource(R.dimen.screen_padding_extra_large)),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     // Error message
@@ -106,15 +108,15 @@ fun RegisterScreen(
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(bottom = 16.dp),
+                                .padding(bottom = dimensionResource(R.dimen.spacing_large)),
                             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-                            shape = RoundedCornerShape(12.dp)
+                            shape = RoundedCornerShape(dimensionResource(R.dimen.radius_medium))
                         ) {
                             Text(
                                 text = "⚠️ $errorToShow",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.padding(12.dp)
+                                modifier = Modifier.padding(dimensionResource(R.dimen.spacing_medium))
                             )
                         }
                     }
@@ -125,8 +127,8 @@ fun RegisterScreen(
                         onValueChange = { name = it; localError = null; authViewModel.clearError() },
                         label = { Text("Full Name") },
                         leadingIcon = { Icon(Icons.Default.Person, null, tint = CanteenGreen) },
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = dimensionResource(R.dimen.spacing_medium)),
+                        shape = RoundedCornerShape(dimensionResource(R.dimen.radius_button)),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                         keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
@@ -138,8 +140,8 @@ fun RegisterScreen(
                         onValueChange = { phone = it; localError = null; authViewModel.clearError() },
                         label = { Text("Phone Number") },
                         leadingIcon = { Icon(Icons.Default.Phone, null, tint = CanteenGreen) },
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = dimensionResource(R.dimen.spacing_medium)),
+                        shape = RoundedCornerShape(dimensionResource(R.dimen.radius_button)),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone, imeAction = ImeAction.Next),
                         keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
@@ -151,8 +153,8 @@ fun RegisterScreen(
                         onValueChange = { email = it; localError = null; authViewModel.clearError() },
                         label = { Text("Email Address") },
                         leadingIcon = { Icon(Icons.Default.Email, null, tint = CanteenGreen) },
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = dimensionResource(R.dimen.spacing_medium)),
+                        shape = RoundedCornerShape(dimensionResource(R.dimen.radius_button)),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
                         keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
@@ -170,8 +172,8 @@ fun RegisterScreen(
                             }
                         },
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = dimensionResource(R.dimen.spacing_medium)),
+                        shape = RoundedCornerShape(dimensionResource(R.dimen.radius_button)),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Next),
                         keyboardActions = KeyboardActions(onNext = { focusManager.moveFocus(FocusDirection.Down) })
@@ -184,8 +186,8 @@ fun RegisterScreen(
                         label = { Text("Confirm Password") },
                         leadingIcon = { Icon(Icons.Default.Lock, null, tint = CanteenGreen) },
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                        modifier = Modifier.fillMaxWidth().padding(bottom = 24.dp),
-                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier.fillMaxWidth().padding(bottom = dimensionResource(R.dimen.spacing_extra_large)),
+                        shape = RoundedCornerShape(dimensionResource(R.dimen.radius_button)),
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() })
@@ -198,16 +200,16 @@ fun RegisterScreen(
                             else if (name.isBlank() || phone.isBlank() || email.isBlank() || password.isBlank()) localError = "All fields are required"
                             else authViewModel.signUp(email, password, name, phone)
                         },
-                        modifier = Modifier.fillMaxWidth().height(54.dp),
-                        shape = RoundedCornerShape(14.dp),
+                        modifier = Modifier.fillMaxWidth().height(dimensionResource(R.dimen.box_size_large)),
+                        shape = RoundedCornerShape(dimensionResource(R.dimen.radius_button)),
                         enabled = !uiState.isLoading,
                         colors = ButtonDefaults.buttonColors(containerColor = CanteenGreen)
                     ) {
-                        if (uiState.isLoading) CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White, strokeWidth = 2.dp)
+                        if (uiState.isLoading) CircularProgressIndicator(modifier = Modifier.size(dimensionResource(R.dimen.icon_size_medium)), color = Color.White, strokeWidth = 2.dp)
                         else Text("Create Account", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_large)))
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text("Already have an account? ", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f))
@@ -217,7 +219,7 @@ fun RegisterScreen(
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_huge)))
         }
     }
 }

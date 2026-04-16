@@ -15,9 +15,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.ndejje.ndejjecanteen.R
 import com.ndejje.ndejjecanteen.ui.theme.*
 import com.ndejje.ndejjecanteen.ui.viewmodel.AuthViewModel
 
@@ -60,7 +62,7 @@ fun ProfileScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(20.dp),
+                .padding(dimensionResource(R.dimen.screen_padding_large)),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Profile Header
@@ -79,7 +81,7 @@ fun ProfileScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_large)))
 
             Text(
                 text = userProfile?.name ?: "Student Name",
@@ -92,15 +94,15 @@ fun ProfileScreen(
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
             )
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_huge)))
 
             // Info Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
+                shape = RoundedCornerShape(dimensionResource(R.dimen.radius_extra_large)),
                 elevation = CardDefaults.cardElevation(2.dp)
             ) {
-                Column(modifier = Modifier.padding(20.dp)) {
+                Column(modifier = Modifier.padding(dimensionResource(R.dimen.screen_padding_large))) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -114,31 +116,31 @@ fun ProfileScreen(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_large)))
 
                     if (isEditing) {
                         OutlinedTextField(
                             value = editName,
                             onValueChange = { editName = it },
                             label = { Text("Full Name") },
-                            modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
-                            shape = RoundedCornerShape(12.dp)
+                            modifier = Modifier.fillMaxWidth().padding(bottom = dimensionResource(R.dimen.spacing_medium)),
+                            shape = RoundedCornerShape(dimensionResource(R.dimen.radius_medium))
                         )
                         OutlinedTextField(
                             value = editPhone,
                             onValueChange = { editPhone = it },
                             label = { Text("Phone Number") },
-                            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
-                            shape = RoundedCornerShape(12.dp)
+                            modifier = Modifier.fillMaxWidth().padding(bottom = dimensionResource(R.dimen.spacing_large)),
+                            shape = RoundedCornerShape(dimensionResource(R.dimen.radius_medium))
                         )
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_small))
                         ) {
                             OutlinedButton(
                                 onClick = { isEditing = false },
                                 modifier = Modifier.weight(1f),
-                                shape = RoundedCornerShape(12.dp)
+                                shape = RoundedCornerShape(dimensionResource(R.dimen.radius_medium))
                             ) {
                                 Text("Cancel")
                             }
@@ -148,7 +150,7 @@ fun ProfileScreen(
                                     isEditing = false
                                 },
                                 modifier = Modifier.weight(1f),
-                                shape = RoundedCornerShape(12.dp),
+                                shape = RoundedCornerShape(dimensionResource(R.dimen.radius_medium)),
                                 colors = ButtonDefaults.buttonColors(containerColor = CanteenGreen)
                             ) {
                                 Text("Save")
@@ -156,9 +158,9 @@ fun ProfileScreen(
                         }
                     } else {
                         ProfileInfoItem(icon = Icons.Default.Person, label = "Name", value = userProfile?.name ?: "-")
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.surfaceVariant)
+                        HorizontalDivider(modifier = Modifier.padding(vertical = dimensionResource(R.dimen.spacing_medium)), color = MaterialTheme.colorScheme.surfaceVariant)
                         ProfileInfoItem(icon = Icons.Default.Phone, label = "Phone", value = userProfile?.phone ?: "-")
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.surfaceVariant)
+                        HorizontalDivider(modifier = Modifier.padding(vertical = dimensionResource(R.dimen.spacing_medium)), color = MaterialTheme.colorScheme.surfaceVariant)
                         ProfileInfoItem(icon = Icons.Default.Email, label = "Email", value = currentEmail)
                     }
                 }
@@ -169,19 +171,19 @@ fun ProfileScreen(
                 // You could show a snackbar or small toast-like card here
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_extra_large)))
 
             // Support Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(20.dp),
+                shape = RoundedCornerShape(dimensionResource(R.dimen.radius_extra_large)),
                 elevation = CardDefaults.cardElevation(2.dp)
             ) {
-                Column(modifier = Modifier.padding(20.dp)) {
+                Column(modifier = Modifier.padding(dimensionResource(R.dimen.screen_padding_large))) {
                     Text("Support", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_medium)))
                     ProfileInfoItem(icon = Icons.Default.Help, label = "Help Center", value = "FAQs & Contact")
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.surfaceVariant)
+                    HorizontalDivider(modifier = Modifier.padding(vertical = dimensionResource(R.dimen.spacing_medium)), color = MaterialTheme.colorScheme.surfaceVariant)
                     ProfileInfoItem(icon = Icons.Default.Info, label = "App Version", value = "1.0.0")
                 }
             }
@@ -208,8 +210,8 @@ fun ProfileScreen(
 @Composable
 fun ProfileInfoItem(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, value: String) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(icon, contentDescription = null, tint = CanteenGreen, modifier = Modifier.size(20.dp))
-        Spacer(modifier = Modifier.width(12.dp))
+        Icon(icon, contentDescription = null, tint = CanteenGreen, modifier = Modifier.size(dimensionResource(R.dimen.icon_size_small)))
+        Spacer(modifier = Modifier.width(dimensionResource(R.dimen.spacing_medium)))
         Column {
             Text(label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
             Text(value, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)

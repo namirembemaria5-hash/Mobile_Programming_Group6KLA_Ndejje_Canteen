@@ -1,10 +1,26 @@
 package com.ndejje.ndejjecanteen.data.model
 
+import com.google.firebase.firestore.PropertyName
+
 enum class OrderStatus(val displayName: String, val emoji: String) {
     PENDING("Order Placed", "⏳"),
     PREPARING("Preparing", "👨‍🍳"),
     READY("Ready", "✅"),
+    IN_TRANSIT("In Transit", "🚚"),
+    DELIVERED("Delivered", "🏁"),
     CANCELLED("Cancelled", "❌")
+}
+
+enum class PaymentMethod(val displayName: String, val emoji: String) {
+    CASH("Cash on Delivery", "💵"),
+    AIRTEL_MONEY("Airtel Money", "🔴"),
+    MTN_MOMO("MTN MoMo", "🟡")
+}
+
+enum class PaymentStatus {
+    PENDING,
+    COMPLETED,
+    FAILED
 }
 
 data class OrderLocation(
@@ -32,9 +48,15 @@ data class Order(
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),
     val location: OrderLocation? = null,
-    val isPreOrder: Boolean = false,
+    
+    @get:PropertyName("isPreOrder")
+    @set:PropertyName("isPreOrder")
+    var isPreOrder: Boolean = false,
+
     val preOrderDate: String = "",
-    val notes: String = ""
+    val notes: String = "",
+    val paymentMethod: String = PaymentMethod.CASH.name,
+    val paymentStatus: String = PaymentStatus.PENDING.name
 ) {
-    constructor() : this("", "", "", "", emptyList(), 0.0, OrderStatus.PENDING.name, System.currentTimeMillis(), System.currentTimeMillis(), null, false, "", "")
+    constructor() : this("", "", "", "", emptyList(), 0.0, OrderStatus.PENDING.name, System.currentTimeMillis(), System.currentTimeMillis(), null, false, "", "", PaymentMethod.CASH.name, PaymentStatus.PENDING.name)
 }
