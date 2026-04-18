@@ -162,10 +162,14 @@ fun CanteenNavGraph(
             )
         }
         composable(Screen.KitchenOrders.route) {
-            KitchenOrdersScreen(managementViewModel)
+            val userProfile by authViewModel.userProfile.collectAsState()
+            val isAdmin = userProfile?.role == "ADMIN"
+            KitchenOrdersScreen(managementViewModel, isAdmin = isAdmin)
         }
         composable(Screen.DeliveryOrders.route) {
-            DeliveryOrdersScreen(managementViewModel)
+            val userProfile by authViewModel.userProfile.collectAsState()
+            val isAdmin = userProfile?.role == "ADMIN"
+            DeliveryOrdersScreen(managementViewModel, isAdmin = isAdmin)
         }
     }
 }

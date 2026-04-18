@@ -86,4 +86,21 @@ class AuthRepository {
             false
         }
     }
+
+    suspend fun changePassword(oldPassword: String, newPassword: String): AuthResult {
+        return try {
+            val user = auth.currentUser ?: return AuthResult.Error("No user logged in")
+            val email = user.email ?: return AuthResult.Error("Email not found")
+            
+            // Re-authenticate first
+            val credential = com.google.firebase.auth.EmailAuthProvider.getCredential(email, oldPassword)
+            user.reauthenticate(credential).await()
+            
+            // Update password
+            user.updatePassword(newPassword).await()
+            AuthResult.Success(user)
+        } catch (e: Exception) {
+            AuthResult.Error(e.message ?: "Failed to change password")
+        }
+    }
 }
