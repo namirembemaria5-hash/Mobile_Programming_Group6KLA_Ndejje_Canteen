@@ -25,6 +25,7 @@ fun MainScreen() {
     val orderViewModel: OrderViewModel = viewModel()
     val managementViewModel: ManagementViewModel = viewModel()
 
+
     val userProfile by authViewModel.userProfile.collectAsState()
     val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
     val cartItemCount by cartViewModel.cartItemCount.collectAsState()

@@ -136,11 +136,12 @@ fun CanteenNavGraph(
                 ProfileScreen(
                     authViewModel = authViewModel,
                     onLogout = {
-                        authViewModel.signOut()
-                        cartViewModel.clearCart()
+                        // Navigate to Home FIRST to avoid the redirect-to-login logic
                         navController.navigate(Screen.Home.route) {
                             popUpTo(0) { inclusive = true }
                         }
+                        authViewModel.signOut()
+                        cartViewModel.clearCart()
                     }
                 )
             }
@@ -151,11 +152,12 @@ fun CanteenNavGraph(
             AdminDashboardScreen(
                 viewModel = managementViewModel,
                 onLogout = {
-                    authViewModel.signOut()
-                    cartViewModel.clearCart()
+                    // Navigate to Home FIRST
                     navController.navigate(Screen.Home.route) {
                         popUpTo(0) { inclusive = true }
                     }
+                    authViewModel.signOut()
+                    cartViewModel.clearCart()
                 }
             )
         }
