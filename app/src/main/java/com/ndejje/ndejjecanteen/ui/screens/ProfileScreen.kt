@@ -1,11 +1,12 @@
 package com.ndejje.ndejjecanteen.ui.screens
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -17,6 +18,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ndejje.ndejjecanteen.R
@@ -34,9 +38,17 @@ fun ProfileScreen(
     val currentEmail = authViewModel.currentUserEmail ?: ""
 
     var isEditing by remember { mutableStateOf(false) }
-    var editName by remember { mutableStateOf(userProfile?.name ?: "") }
-    var editPhone by remember { mutableStateOf(userProfile?.phone ?: "") }
+    var editName by remember { mutableStateOf("") }
+    var editPhone by remember { mutableStateOf("") }
+    
+    var isChangingPassword by remember { mutableStateOf(false) }
+    var oldPassword by remember { mutableStateOf("") }
+    var newPassword by remember { mutableStateOf("") }
+    var repeatPassword by remember { mutableStateOf("") }
+    
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var showPasswordConfirmDialog by remember { mutableStateOf(false) }
+    var passwordVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(userProfile) {
         userProfile?.let {
@@ -84,7 +96,7 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_large)))
 
             Text(
-                text = userProfile?.name ?: "Student Name",
+                text = userProfile?.name ?: "User",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -95,6 +107,24 @@ fun ProfileScreen(
             )
 
             Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_huge)))
+
+            // Error Display
+            uiState.error?.let { error ->
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                ) {
+                    Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Error, null, tint = MaterialTheme.colorScheme.error)
+                        Spacer(Modifier.width(8.dp))
+                        Text(error, color = MaterialTheme.colorScheme.onErrorContainer, style = MaterialTheme.typography.bodySmall)
+                        Spacer(Modifier.weight(1f))
+                        IconButton(onClick = { authViewModel.clearError() }) {
+                            Icon(Icons.Default.Close, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(16.dp))
+                        }
+                    }
+                }
+            }
 
             // Info Card
             Card(
@@ -109,7 +139,7 @@ fun ProfileScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("Personal Information", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                        if (!isEditing) {
+                        if (!isEditing && !isChangingPassword) {
                             TextButton(onClick = { isEditing = true }) {
                                 Text("Edit")
                             }
@@ -131,7 +161,8 @@ fun ProfileScreen(
                             onValueChange = { editPhone = it },
                             label = { Text("Phone Number") },
                             modifier = Modifier.fillMaxWidth().padding(bottom = dimensionResource(R.dimen.spacing_large)),
-                            shape = RoundedCornerShape(dimensionResource(R.dimen.radius_medium))
+                            shape = RoundedCornerShape(dimensionResource(R.dimen.radius_medium)),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
                         )
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -153,10 +184,11 @@ fun ProfileScreen(
                                 shape = RoundedCornerShape(dimensionResource(R.dimen.radius_medium)),
                                 colors = ButtonDefaults.buttonColors(containerColor = CanteenGreen)
                             ) {
-                                Text("Save")
+                                if (uiState.isLoading) CircularProgressIndicator(Modifier.size(20.dp), color = Color.White)
+                                else Text("Save")
                             }
                         }
-                    } else {
+                    } else if (!isChangingPassword) {
                         ProfileInfoItem(icon = Icons.Default.Person, label = "Name", value = userProfile?.name ?: "-")
                         HorizontalDivider(modifier = Modifier.padding(vertical = dimensionResource(R.dimen.spacing_medium)), color = MaterialTheme.colorScheme.surfaceVariant)
                         ProfileInfoItem(icon = Icons.Default.Phone, label = "Phone", value = userProfile?.phone ?: "-")
@@ -166,9 +198,98 @@ fun ProfileScreen(
                 }
             }
 
-            // Success message
-            AnimatedVisibility(visible = uiState.error == null && uiState.isLoading == false && !isEditing) {
-                // You could show a snackbar or small toast-like card here
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_large)))
+
+            // Password Security Card
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(dimensionResource(R.dimen.radius_extra_large)),
+                elevation = CardDefaults.cardElevation(2.dp)
+            ) {
+                Column(modifier = Modifier.padding(dimensionResource(R.dimen.screen_padding_large))) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Security", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        if (!isChangingPassword && !isEditing) {
+                            TextButton(onClick = { isChangingPassword = true }) {
+                                Text("Change Password")
+                            }
+                        }
+                    }
+
+                    if (isChangingPassword) {
+                        Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_large)))
+                        
+                        OutlinedTextField(
+                            value = oldPassword,
+                            onValueChange = { oldPassword = it },
+                            label = { Text("Old Password") },
+                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                            trailingIcon = {
+                                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                    Icon(if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility, null)
+                                }
+                            }
+                        )
+
+                        OutlinedTextField(
+                            value = newPassword,
+                            onValueChange = { newPassword = it },
+                            label = { Text("New Password") },
+                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                        )
+
+                        OutlinedTextField(
+                            value = repeatPassword,
+                            onValueChange = { repeatPassword = it },
+                            label = { Text("Repeat New Password") },
+                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                            isError = repeatPassword.isNotEmpty() && repeatPassword != newPassword,
+                            supportingText = {
+                                if (repeatPassword.isNotEmpty() && repeatPassword != newPassword) {
+                                    Text("Passwords do not match", color = MaterialTheme.colorScheme.error)
+                                }
+                            }
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            OutlinedButton(
+                                onClick = { 
+                                    isChangingPassword = false
+                                    oldPassword = ""; newPassword = ""; repeatPassword = ""
+                                },
+                                modifier = Modifier.weight(1f)
+                            ) { Text("Cancel") }
+                            
+                            Button(
+                                onClick = {
+                                    if (newPassword == repeatPassword && newPassword.isNotEmpty() && oldPassword.isNotEmpty()) {
+                                        showPasswordConfirmDialog = true
+                                    }
+                                },
+                                modifier = Modifier.weight(1f),
+                                enabled = newPassword == repeatPassword && newPassword.isNotEmpty() && oldPassword.isNotEmpty(),
+                                colors = ButtonDefaults.buttonColors(containerColor = CanteenGreen)
+                            ) { Text("Update") }
+                        }
+                    } else {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Lock, null, tint = CanteenGreen, modifier = Modifier.size(20.dp))
+                            Spacer(Modifier.width(12.dp))
+                            Text("Password last changed: Recently", style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_extra_large)))
@@ -188,6 +309,31 @@ fun ProfileScreen(
                 }
             }
         }
+    }
+
+    if (showPasswordConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { showPasswordConfirmDialog = false },
+            title = { Text("Confirm Password Change") },
+            text = { Text("Are you sure you want to change your password? You will need to use your new password next time you log in.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showPasswordConfirmDialog = false
+                        authViewModel.changePassword(oldPassword, newPassword) { success ->
+                            if (success) {
+                                isChangingPassword = false
+                                oldPassword = ""; newPassword = ""; repeatPassword = ""
+                            }
+                        }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = CanteenGreen)
+                ) { Text("Yes, Change It") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPasswordConfirmDialog = false }) { Text("No, Keep Old") }
+            }
+        )
     }
 
     if (showLogoutDialog) {

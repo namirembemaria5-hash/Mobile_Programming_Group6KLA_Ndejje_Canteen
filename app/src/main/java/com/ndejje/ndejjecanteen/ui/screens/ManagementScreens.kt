@@ -36,7 +36,8 @@ import com.ndejje.ndejjecanteen.utils.formatUGX
 @Composable
 fun AdminDashboardScreen(
     viewModel: ManagementViewModel,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onNavigateToFAQ: () -> Unit
 ) {
     val analytics by viewModel.analytics.collectAsState()
     val allOrders by viewModel.allOrders.collectAsState()
@@ -243,6 +244,30 @@ fun KitchenOrdersScreen(viewModel: ManagementViewModel) {
                             item = item,
                             onToggle = { isAvailable -> viewModel.toggleItemAvailability(item.id, isAvailable) }
                         )
+                    }
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_large)))
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(dimensionResource(R.dimen.radius_extra_large)),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.Help, null, tint = CanteenGreen)
+                                Spacer(Modifier.width(12.dp))
+                                Text("Need help? Check FAQs", style = MaterialTheme.typography.bodyMedium)
+                            }
+                            TextButton(onClick = onNavigateToFAQ) {
+                                Text("View")
+                            }
+                        }
                     }
                 }
             }
