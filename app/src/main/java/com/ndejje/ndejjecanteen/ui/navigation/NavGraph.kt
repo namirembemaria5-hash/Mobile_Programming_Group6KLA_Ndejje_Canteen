@@ -64,8 +64,16 @@ fun CanteenNavGraph(
             LoginScreen(
                 authViewModel = authViewModel,
                 onLoginSuccess = { role ->
-                    if (role == "ADMIN" || role == "KITCHEN" || role == "DELIVERY") {
+                    if (role == "ADMIN") {
                         navController.navigate(Screen.AdminDashboard.route) {
+                            popUpTo(Screen.Home.route) { inclusive = true }
+                        }
+                    } else if (role == "KITCHEN") {
+                        navController.navigate(Screen.KitchenOrders.route) {
+                            popUpTo(Screen.Home.route) { inclusive = true }
+                        }
+                    } else if (role == "DELIVERY") {
+                        navController.navigate(Screen.DeliveryOrders.route) {
                             popUpTo(Screen.Home.route) { inclusive = true }
                         }
                     } else {
@@ -79,6 +87,9 @@ fun CanteenNavGraph(
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }
                     }
+                },
+                onNavigateToFAQ = {
+                    navController.navigate(Screen.FAQ.route)
                 }
             )
         }
@@ -98,6 +109,9 @@ fun CanteenNavGraph(
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Home.route) { inclusive = true }
                     }
+                },
+                onNavigateToFAQ = {
+                    navController.navigate(Screen.FAQ.route)
                 }
             )
         }
@@ -136,13 +150,13 @@ fun CanteenNavGraph(
                 ProfileScreen(
                     authViewModel = authViewModel,
                     onLogout = {
-                        // Navigate to Home FIRST to avoid the redirect-to-login logic
                         navController.navigate(Screen.Home.route) {
                             popUpTo(0) { inclusive = true }
                         }
                         authViewModel.signOut()
                         cartViewModel.clearCart()
-                    }
+                    },
+                    onNavigateToFAQ = { navController.navigate(Screen.FAQ.route) }
                 )
             }
         }
@@ -152,13 +166,13 @@ fun CanteenNavGraph(
             AdminDashboardScreen(
                 viewModel = managementViewModel,
                 onLogout = {
-                    // Navigate to Home FIRST
                     navController.navigate(Screen.Home.route) {
                         popUpTo(0) { inclusive = true }
                     }
                     authViewModel.signOut()
                     cartViewModel.clearCart()
-                }
+                },
+                onNavigateToFAQ = { navController.navigate(Screen.FAQ.route) }
             )
         }
         composable(Screen.KitchenOrders.route) {
@@ -169,7 +183,21 @@ fun CanteenNavGraph(
         composable(Screen.DeliveryOrders.route) {
             val userProfile by authViewModel.userProfile.collectAsState()
             val isAdmin = userProfile?.role == "ADMIN"
-            DeliveryOrdersScreen(managementViewModel, isAdmin = isAdmin)
+            DeliveryOrdersScreen(
+                viewModel = managementViewModel,
+                isAdmin = isAdmin,
+                deliveryPersonId = userProfile?.uid
+            )
+        }
+        composable(Screen.DeliveryHistory.route) {
+            val userProfile by authViewModel.userProfile.collectAsState()
+            DeliveryHistoryScreen(
+                viewModel = managementViewModel,
+                deliveryPersonId = userProfile?.uid
+            )
+        }
+        composable(Screen.FAQ.route) {
+            FAQScreen(onNavigateBack = { navController.popBackStack() })
         }
     }
 }

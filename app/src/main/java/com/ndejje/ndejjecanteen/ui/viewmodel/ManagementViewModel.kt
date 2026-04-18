@@ -5,12 +5,15 @@ import androidx.lifecycle.viewModelScope
 import com.ndejje.ndejjecanteen.data.model.MenuItem
 import com.ndejje.ndejjecanteen.data.model.Order
 import com.ndejje.ndejjecanteen.data.model.OrderStatus
+import com.ndejje.ndejjecanteen.data.model.User
 import com.ndejje.ndejjecanteen.data.repository.MenuRepository
 import com.ndejje.ndejjecanteen.data.repository.OrderRepository
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import java.util.*
 
 data class OrderAnalytics(
@@ -34,6 +37,9 @@ class ManagementViewModel : ViewModel() {
 
     private val _analytics = MutableStateFlow(OrderAnalytics())
     val analytics: StateFlow<OrderAnalytics> = _analytics.asStateFlow()
+
+    private val _deliveryPeople = MutableStateFlow<List<User>>(emptyList())
+    val deliveryPeople: StateFlow<List<User>> = _deliveryPeople.asStateFlow()
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
@@ -60,8 +66,27 @@ class ManagementViewModel : ViewModel() {
                     _menuItems.value = items
                 }
             }
+
+            // Load Delivery People
+            loadDeliveryPeople()
             
             _isLoading.value = false
+        }
+    }
+
+    private fun loadDeliveryPeople() {
+        viewModelScope.launch {
+            try {
+                val snapshot = FirebaseFirestore.getInstance()
+                    .collection("users")
+                    .whereEqualTo("role", "DELIVERY")
+                    .get()
+                    .await()
+                val users = snapshot.toObjects(User::class.java)
+                _deliveryPeople.value = users
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
@@ -107,6 +132,29 @@ class ManagementViewModel : ViewModel() {
         viewModelScope.launch {
             orderRepository.updateOrderStatus(orderId, status.name)
         }
+    }
+
+    fun assignDeliveryAndReady(orderId: String, deliveryPerson: User) {
+        viewModelScope.launch {
+            FirebaseFirestore.getInstance().collection("orders").document(orderId)
+                .update(
+                    mapOf(
+                        "status" to OrderStatus.READY.name,
+                        "deliveryPersonId" to deliveryPerson.uid,
+                        "deliveryPersonName" to deliveryPerson.name,
+                        "updatedAt" to System.currentTimeMillis()
+                    )
+                ).await()
+        }
+    }
+
+    fun getAvailableDeliveryPeople(): List<User> {
+        val busyDeliveryIds = _allOrders.value
+            .filter { it.status == OrderStatus.READY.name || it.status == OrderStatus.IN_TRANSIT.name }
+            .mapNotNull { it.deliveryPersonId }
+            .toSet()
+        
+        return _deliveryPeople.value.filter { it.uid !in busyDeliveryIds }
     }
 
     fun toggleItemAvailability(itemId: String, isAvailable: Boolean) {

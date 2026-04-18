@@ -37,7 +37,8 @@ fun RegisterScreen(
     authViewModel: AuthViewModel,
     onRegisterSuccess: () -> Unit,
     onNavigateToLogin: () -> Unit,
-    onNavigateToHome: () -> Unit
+    onNavigateToHome: () -> Unit,
+    onNavigateToFAQ: () -> Unit
 ) {
     val uiState by authViewModel.uiState.collectAsState()
     val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
@@ -236,6 +237,17 @@ fun RegisterScreen(
                         TextButton(onClick = onNavigateToLogin) {
                             Text("Sign In", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = CanteenGreen)
                         }
+                    }
+
+                    TextButton(
+                        onClick = onNavigateToFAQ,
+                        modifier = Modifier.padding(top = 8.dp)
+                    ) {
+                        Text(
+                            "Frequently Asked Questions (FAQs)",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = CanteenGreen.copy(alpha = 0.7f)
+                        )
                     }
                 }
             }

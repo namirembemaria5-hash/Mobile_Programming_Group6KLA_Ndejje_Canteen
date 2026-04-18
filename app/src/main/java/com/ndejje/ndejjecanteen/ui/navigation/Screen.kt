@@ -25,6 +25,8 @@ sealed class Screen(val route: String) {
     object AdminDashboard : Screen("admin_dashboard")
     object KitchenOrders : Screen("kitchen_orders")
     object DeliveryOrders : Screen("delivery_orders")
+    object DeliveryHistory : Screen("delivery_history")
+    object FAQ : Screen("faq")
 }
 
 data class BottomNavItem(
@@ -44,5 +46,11 @@ val adminNavItems = listOf(
     BottomNavItem("Dashboard", Icons.Default.Dashboard, Screen.AdminDashboard.route),
     BottomNavItem("Kitchen", Icons.Default.Restaurant, Screen.KitchenOrders.route),
     BottomNavItem("Delivery", Icons.Default.LocalShipping, Screen.DeliveryOrders.route),
+    BottomNavItem("Profile", Icons.Default.Person, Screen.Profile.route)
+)
+
+val deliveryNavItems = listOf(
+    BottomNavItem("Delivery", Icons.Default.LocalShipping, Screen.DeliveryOrders.route),
+    BottomNavItem("History", Icons.Default.History, Screen.DeliveryHistory.route),
     BottomNavItem("Profile", Icons.Default.Person, Screen.Profile.route)
 )

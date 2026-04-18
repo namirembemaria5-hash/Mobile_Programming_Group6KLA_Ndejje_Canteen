@@ -2,6 +2,7 @@ package com.ndejje.ndejjecanteen.ui.screens
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -31,7 +32,8 @@ import com.ndejje.ndejjecanteen.ui.viewmodel.AuthViewModel
 @Composable
 fun ProfileScreen(
     authViewModel: AuthViewModel,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onNavigateToFAQ: () -> Unit
 ) {
     val userProfile by authViewModel.userProfile.collectAsState()
     val uiState by authViewModel.uiState.collectAsState()
@@ -303,7 +305,12 @@ fun ProfileScreen(
                 Column(modifier = Modifier.padding(dimensionResource(R.dimen.screen_padding_large))) {
                     Text("Support", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_medium)))
-                    ProfileInfoItem(icon = Icons.Default.Help, label = "Help Center", value = "FAQs & Contact")
+                    ProfileInfoItem(
+                        icon = Icons.Default.Help,
+                        label = "Help Center",
+                        value = "FAQs & Contact",
+                        onClick = onNavigateToFAQ
+                    )
                     HorizontalDivider(modifier = Modifier.padding(vertical = dimensionResource(R.dimen.spacing_medium)), color = MaterialTheme.colorScheme.surfaceVariant)
                     ProfileInfoItem(icon = Icons.Default.Info, label = "App Version", value = "1.0.0")
                 }
@@ -354,8 +361,11 @@ fun ProfileScreen(
 }
 
 @Composable
-fun ProfileInfoItem(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, value: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+fun ProfileInfoItem(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, value: String, onClick: (() -> Unit)? = null) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = if (onClick != null) Modifier.fillMaxWidth().clickable { onClick() } else Modifier
+    ) {
         Icon(icon, contentDescription = null, tint = CanteenGreen, modifier = Modifier.size(dimensionResource(R.dimen.icon_size_small)))
         Spacer(modifier = Modifier.width(dimensionResource(R.dimen.spacing_medium)))
         Column {

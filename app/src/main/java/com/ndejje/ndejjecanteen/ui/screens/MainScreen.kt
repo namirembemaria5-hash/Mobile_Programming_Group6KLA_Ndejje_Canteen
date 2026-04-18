@@ -13,6 +13,7 @@ import androidx.navigation.compose.rememberNavController
 import com.ndejje.ndejjecanteen.ui.navigation.CanteenNavGraph
 import com.ndejje.ndejjecanteen.ui.navigation.bottomNavItems
 import com.ndejje.ndejjecanteen.ui.navigation.adminNavItems
+import com.ndejje.ndejjecanteen.ui.navigation.deliveryNavItems
 import com.ndejje.ndejjecanteen.ui.navigation.Screen
 import com.ndejje.ndejjecanteen.ui.viewmodel.*
 
@@ -40,7 +41,7 @@ fun MainScreen() {
         when (role) {
             "ADMIN" -> adminNavItems
             "KITCHEN" -> adminNavItems.filter { it.route == Screen.KitchenOrders.route || it.route == Screen.Profile.route }
-            "DELIVERY" -> adminNavItems.filter { it.route == Screen.DeliveryOrders.route || it.route == Screen.Profile.route }
+            "DELIVERY" -> deliveryNavItems
             else -> bottomNavItems
         }
     }

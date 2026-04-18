@@ -40,7 +40,8 @@ fun LoginScreen(
     authViewModel: AuthViewModel,
     onLoginSuccess: (String) -> Unit,
     onNavigateToRegister: () -> Unit,
-    onNavigateToHome: () -> Unit
+    onNavigateToHome: () -> Unit,
+    onNavigateToFAQ: () -> Unit
 ) {
     val uiState by authViewModel.uiState.collectAsState()
     val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
@@ -277,6 +278,17 @@ fun LoginScreen(
                                 color = MaterialTheme.colorScheme.primary
                             )
                         }
+                    }
+
+                    TextButton(
+                        onClick = onNavigateToFAQ,
+                        modifier = Modifier.padding(top = 8.dp)
+                    ) {
+                        Text(
+                            "Frequently Asked Questions (FAQs)",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+                        )
                     }
                 }
             }

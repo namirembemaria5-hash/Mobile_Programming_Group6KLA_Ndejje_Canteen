@@ -28,6 +28,7 @@ import com.ndejje.ndejjecanteen.R
 import com.ndejje.ndejjecanteen.data.model.Order
 import com.ndejje.ndejjecanteen.data.model.OrderStatus
 import com.ndejje.ndejjecanteen.data.model.MenuItem
+import com.ndejje.ndejjecanteen.data.model.User
 import com.ndejje.ndejjecanteen.ui.theme.*
 import com.ndejje.ndejjecanteen.ui.viewmodel.ManagementViewModel
 import com.ndejje.ndejjecanteen.utils.formatUGX
@@ -36,7 +37,8 @@ import com.ndejje.ndejjecanteen.utils.formatUGX
 @Composable
 fun AdminDashboardScreen(
     viewModel: ManagementViewModel,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onNavigateToFAQ: () -> Unit
 ) {
     val analytics by viewModel.analytics.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -61,7 +63,18 @@ fun AdminDashboardScreen(
                 verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_large))
             ) {
                 item {
-                    Text("Daily Analytics", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Daily Analytics", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+                        TextButton(onClick = onNavigateToFAQ) {
+                            Icon(Icons.Default.QuestionMark, null, Modifier.size(20.dp))
+                            Spacer(Modifier.width(4.dp))
+                            Text("Help")
+                        }
+                    }
                     Row(
                         Modifier.fillMaxWidth().padding(vertical = dimensionResource(R.dimen.spacing_small)), 
                         horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_small))
@@ -102,9 +115,11 @@ fun AdminDashboardScreen(
 fun KitchenOrdersScreen(viewModel: ManagementViewModel, isAdmin: Boolean = false) {
     val orders by viewModel.allOrders.collectAsState()
     val menuItems by viewModel.menuItems.collectAsState()
+    val deliveryPeople by viewModel.deliveryPeople.collectAsState()
     val kitchenOrders = orders.filter { it.status == OrderStatus.PENDING.name || it.status == OrderStatus.PREPARING.name }
     
     var selectedTab by remember { mutableIntStateOf(0) }
+    var orderToAssign by remember { mutableStateOf<Order?>(null) }
 
     Scaffold(
         topBar = {
@@ -135,7 +150,11 @@ fun KitchenOrdersScreen(viewModel: ManagementViewModel, isAdmin: Boolean = false
                         if (isAdmin) {
                             ReadOnlyKitchenOrderCard(order)
                         } else {
-                            KitchenOrderCard(order, onStatusUpdate = { viewModel.updateStatus(order.orderId, it) })
+                            KitchenOrderCard(
+                                order = order, 
+                                onStatusUpdate = { viewModel.updateStatus(order.orderId, it) },
+                                onReadyForPickup = { orderToAssign = order }
+                            )
                         }
                     }
                 }
@@ -156,6 +175,78 @@ fun KitchenOrdersScreen(viewModel: ManagementViewModel, isAdmin: Boolean = false
                 }
             }
         }
+    }
+
+    if (orderToAssign != null) {
+        val availableDelivery = viewModel.getAvailableDeliveryPeople()
+        var expanded by remember { mutableStateOf(false) }
+        var selectedPerson by remember { mutableStateOf<User?>(null) }
+
+        AlertDialog(
+            onDismissRequest = { orderToAssign = null },
+            title = { Text("Assign Delivery Personnel") },
+            text = {
+                Column {
+                    Text("Select an available delivery person for Order #${orderToAssign!!.orderId.take(8).uppercase()}")
+                    Spacer(Modifier.height(16.dp))
+                    
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        OutlinedButton(
+                            onClick = { expanded = true },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(selectedPerson?.name ?: "Select Personnel")
+                                Icon(Icons.Default.ArrowDropDown, null)
+                            }
+                        }
+                        DropdownMenu(
+                            expanded = expanded,
+                            onDismissRequest = { expanded = false },
+                            modifier = Modifier.fillMaxWidth(0.8f)
+                        ) {
+                            if (availableDelivery.isEmpty()) {
+                                DropdownMenuItem(
+                                    text = { Text("No available personnel") },
+                                    onClick = { expanded = false }
+                                )
+                            }
+                            availableDelivery.forEach { person ->
+                                DropdownMenuItem(
+                                    text = { Text(person.name) },
+                                    onClick = {
+                                        selectedPerson = person
+                                        expanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        selectedPerson?.let {
+                            viewModel.assignDeliveryAndReady(orderToAssign!!.orderId, it)
+                            orderToAssign = null
+                        }
+                    },
+                    enabled = selectedPerson != null
+                ) {
+                    Text("Confirm & Mark Ready")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { orderToAssign = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 
@@ -193,16 +284,25 @@ fun InventoryItemRow(item: MenuItem, onToggle: (Boolean) -> Unit, readOnly: Bool
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DeliveryOrdersScreen(viewModel: ManagementViewModel, isAdmin: Boolean = false) {
+fun DeliveryOrdersScreen(
+    viewModel: ManagementViewModel,
+    isAdmin: Boolean = false,
+    deliveryPersonId: String? = null
+) {
     val orders by viewModel.allOrders.collectAsState()
-    val deliveryOrders = if (isAdmin) {
-        orders.filter { 
-            it.status == OrderStatus.READY.name || 
-            it.status == OrderStatus.IN_TRANSIT.name || 
-            it.status == OrderStatus.DELIVERED.name 
-        }.sortedByDescending { it.createdAt }
-    } else {
-        orders.filter { it.status == OrderStatus.READY.name || it.status == OrderStatus.IN_TRANSIT.name }
+    val deliveryOrders = remember(orders, isAdmin, deliveryPersonId) {
+        if (isAdmin) {
+            orders.filter { 
+                it.status == OrderStatus.READY.name || 
+                it.status == OrderStatus.IN_TRANSIT.name || 
+                it.status == OrderStatus.DELIVERED.name 
+            }.sortedByDescending { it.createdAt }
+        } else {
+            orders.filter { 
+                (it.status == OrderStatus.READY.name || it.status == OrderStatus.IN_TRANSIT.name) &&
+                (deliveryPersonId == null || it.deliveryPersonId == deliveryPersonId)
+            }
+        }
     }
     val context = LocalContext.current
 
@@ -295,7 +395,11 @@ fun ReadOnlyKitchenOrderCard(order: Order) {
 }
 
 @Composable
-fun KitchenOrderCard(order: Order, onStatusUpdate: (OrderStatus) -> Unit) {
+fun KitchenOrderCard(
+    order: Order,
+    onStatusUpdate: (OrderStatus) -> Unit,
+    onReadyForPickup: () -> Unit
+) {
     Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(dimensionResource(R.dimen.radius_large))) {
         Column(Modifier.padding(dimensionResource(R.dimen.screen_padding))) {
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -314,7 +418,12 @@ fun KitchenOrderCard(order: Order, onStatusUpdate: (OrderStatus) -> Unit) {
                 if (order.status == OrderStatus.PENDING.name) {
                     Button(onClick = { onStatusUpdate(OrderStatus.PREPARING) }) { Text("Start Preparing") }
                 } else if (order.status == OrderStatus.PREPARING.name) {
-                    Button(onClick = { onStatusUpdate(OrderStatus.READY) }, colors = ButtonDefaults.buttonColors(containerColor = CanteenGreen)) { Text("Ready for Pickup") }
+                    Button(
+                        onClick = onReadyForPickup,
+                        colors = ButtonDefaults.buttonColors(containerColor = CanteenGreen)
+                    ) {
+                        Text("Ready for Pickup")
+                    }
                 }
             }
         }

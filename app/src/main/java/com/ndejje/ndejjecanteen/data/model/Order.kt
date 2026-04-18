@@ -56,7 +56,9 @@ data class Order(
     val preOrderDate: String = "",
     val notes: String = "",
     val paymentMethod: String = PaymentMethod.CASH.name,
-    val paymentStatus: String = PaymentStatus.PENDING.name
+    val paymentStatus: String = PaymentStatus.PENDING.name,
+    val deliveryPersonId: String? = null,
+    val deliveryPersonName: String? = null
 ) {
-    constructor() : this("", "", "", "", emptyList(), 0.0, OrderStatus.PENDING.name, System.currentTimeMillis(), System.currentTimeMillis(), null, false, "", "", PaymentMethod.CASH.name, PaymentStatus.PENDING.name)
+    constructor() : this("", "", "", "", emptyList(), 0.0, OrderStatus.PENDING.name, System.currentTimeMillis(), System.currentTimeMillis(), null, false, "", "", PaymentMethod.CASH.name, PaymentStatus.PENDING.name, null, null)
 }
