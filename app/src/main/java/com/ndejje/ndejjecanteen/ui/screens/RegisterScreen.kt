@@ -9,6 +9,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -35,7 +36,8 @@ import com.ndejje.ndejjecanteen.ui.viewmodel.AuthViewModel
 fun RegisterScreen(
     authViewModel: AuthViewModel,
     onRegisterSuccess: () -> Unit,
-    onNavigateToLogin: () -> Unit
+    onNavigateToLogin: () -> Unit,
+    onNavigateToHome: () -> Unit
 ) {
     val uiState by authViewModel.uiState.collectAsState()
     val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
@@ -69,7 +71,25 @@ fun RegisterScreen(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_giant)))
+            // Header section
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.Start
+            ) {
+                IconButton(
+                    onClick = onNavigateToHome,
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.2f),
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                ) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back to Home")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_large)))
             Text(
                 text = "🍳",
                 fontSize = dimensionResource(R.dimen.text_size_emoji_large).value.sp,

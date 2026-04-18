@@ -9,6 +9,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Visibility
@@ -38,7 +39,8 @@ import com.ndejje.ndejjecanteen.ui.viewmodel.AuthViewModel
 fun LoginScreen(
     authViewModel: AuthViewModel,
     onLoginSuccess: (String) -> Unit,
-    onNavigateToRegister: () -> Unit
+    onNavigateToRegister: () -> Unit,
+    onNavigateToHome: () -> Unit
 ) {
     val uiState by authViewModel.uiState.collectAsState()
     val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
@@ -71,7 +73,24 @@ fun LoginScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Header section
-            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_giant)))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.Start
+            ) {
+                IconButton(
+                    onClick = onNavigateToHome,
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.2f),
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                ) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Back to Home")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_large)))
             Text(
                 text = "🍽️",
                 fontSize = dimensionResource(R.dimen.text_size_emoji_large).value.sp,
