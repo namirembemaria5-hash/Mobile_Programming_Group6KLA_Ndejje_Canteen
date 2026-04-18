@@ -31,6 +31,7 @@ import com.ndejje.ndejjecanteen.ui.navigation.Screen
 import com.ndejje.ndejjecanteen.ui.theme.NdejjeCanteenTheme
 import com.ndejje.ndejjecanteen.ui.viewmodel.*
 import com.ndejje.ndejjecanteen.utils.CanteenFirebaseMessagingService
+import java.lang.reflect.Modifier
 
 class MainActivity : ComponentActivity() {
 
