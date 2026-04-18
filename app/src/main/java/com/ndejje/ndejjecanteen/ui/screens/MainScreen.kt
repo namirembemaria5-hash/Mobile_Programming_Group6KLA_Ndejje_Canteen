@@ -38,7 +38,7 @@ fun MainScreen() {
     // Filter navigation items strictly by role to ensure separation of concerns
     val items = remember(role) {
         when (role) {
-            "ADMIN" -> adminNavItems.filter { it.route == Screen.AdminDashboard.route || it.route == Screen.Profile.route }
+            "ADMIN" -> adminNavItems
             "KITCHEN" -> adminNavItems.filter { it.route == Screen.KitchenOrders.route || it.route == Screen.Profile.route }
             "DELIVERY" -> adminNavItems.filter { it.route == Screen.DeliveryOrders.route || it.route == Screen.Profile.route }
             else -> bottomNavItems

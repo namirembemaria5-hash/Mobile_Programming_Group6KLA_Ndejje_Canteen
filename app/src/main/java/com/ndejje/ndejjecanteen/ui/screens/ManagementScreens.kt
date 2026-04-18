@@ -99,7 +99,7 @@ fun AdminDashboardScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun KitchenOrdersScreen(viewModel: ManagementViewModel) {
+fun KitchenOrdersScreen(viewModel: ManagementViewModel, isAdmin: Boolean = false) {
     val orders by viewModel.allOrders.collectAsState()
     val menuItems by viewModel.menuItems.collectAsState()
     val kitchenOrders = orders.filter { it.status == OrderStatus.PENDING.name || it.status == OrderStatus.PREPARING.name }
@@ -109,7 +109,7 @@ fun KitchenOrdersScreen(viewModel: ManagementViewModel) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Kitchen Management", fontWeight = FontWeight.Bold) }
+                title = { Text(if (isAdmin) "Kitchen Monitor" else "Kitchen Management", fontWeight = FontWeight.Bold) }
             )
         }
     ) { padding ->
@@ -132,7 +132,11 @@ fun KitchenOrdersScreen(viewModel: ManagementViewModel) {
                         item { Box(Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) { Text("No active orders") } }
                     }
                     items(kitchenOrders) { order ->
-                        KitchenOrderCard(order, onStatusUpdate = { viewModel.updateStatus(order.orderId, it) })
+                        if (isAdmin) {
+                            ReadOnlyKitchenOrderCard(order)
+                        } else {
+                            KitchenOrderCard(order, onStatusUpdate = { viewModel.updateStatus(order.orderId, it) })
+                        }
                     }
                 }
             } else {
@@ -143,7 +147,10 @@ fun KitchenOrdersScreen(viewModel: ManagementViewModel) {
                     items(menuItems) { item ->
                         InventoryItemRow(
                             item = item,
-                            onToggle = { isAvailable -> viewModel.toggleItemAvailability(item.id, isAvailable) }
+                            onToggle = { isAvailable -> 
+                                if (!isAdmin) viewModel.toggleItemAvailability(item.id, isAvailable) 
+                            },
+                            readOnly = isAdmin
                         )
                     }
                 }
@@ -153,7 +160,7 @@ fun KitchenOrdersScreen(viewModel: ManagementViewModel) {
 }
 
 @Composable
-fun InventoryItemRow(item: MenuItem, onToggle: (Boolean) -> Unit) {
+fun InventoryItemRow(item: MenuItem, onToggle: (Boolean) -> Unit, readOnly: Boolean = false) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(dimensionResource(R.dimen.radius_medium))
@@ -176,7 +183,8 @@ fun InventoryItemRow(item: MenuItem, onToggle: (Boolean) -> Unit) {
                 )
                 Switch(
                     checked = item.isAvailable,
-                    onCheckedChange = onToggle
+                    onCheckedChange = onToggle,
+                    enabled = !readOnly
                 )
             }
         }
@@ -185,32 +193,52 @@ fun InventoryItemRow(item: MenuItem, onToggle: (Boolean) -> Unit) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DeliveryOrdersScreen(viewModel: ManagementViewModel) {
+fun DeliveryOrdersScreen(viewModel: ManagementViewModel, isAdmin: Boolean = false) {
     val orders by viewModel.allOrders.collectAsState()
-    val deliveryOrders = orders.filter { it.status == OrderStatus.READY.name || it.status == OrderStatus.IN_TRANSIT.name }
+    val deliveryOrders = if (isAdmin) {
+        orders.filter { 
+            it.status == OrderStatus.READY.name || 
+            it.status == OrderStatus.IN_TRANSIT.name || 
+            it.status == OrderStatus.DELIVERED.name 
+        }.sortedByDescending { it.createdAt }
+    } else {
+        orders.filter { it.status == OrderStatus.READY.name || it.status == OrderStatus.IN_TRANSIT.name }
+    }
     val context = LocalContext.current
 
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Delivery Queue", fontWeight = FontWeight.Bold) }) }
+        topBar = { TopAppBar(title = { Text(if (isAdmin) "Delivery Monitor" else "Delivery Queue", fontWeight = FontWeight.Bold) }) }
     ) { padding ->
         LazyColumn(
             modifier = Modifier.padding(padding).padding(dimensionResource(R.dimen.screen_padding)), 
             verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_medium))
         ) {
             if (deliveryOrders.isEmpty()) {
-                item { Box(Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) { Text("Queue is empty") } }
+                item { Box(Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) { Text(if (isAdmin) "No delivery history found" else "Queue is empty") } }
             }
             items(deliveryOrders) { order ->
-                DeliveryOrderCard(
-                    order = order,
-                    onNavigate = {
-                        order.location?.let {
-                            val uri = Uri.parse("google.navigation:q=${it.latitude},${it.longitude}")
-                            context.startActivity(Intent(Intent.ACTION_VIEW, uri).setPackage("com.google.android.apps.maps"))
+                if (isAdmin) {
+                    ReadOnlyDeliveryOrderCard(
+                        order = order,
+                        onNavigate = {
+                            order.location?.let {
+                                val uri = Uri.parse("google.navigation:q=${it.latitude},${it.longitude}")
+                                context.startActivity(Intent(Intent.ACTION_VIEW, uri).setPackage("com.google.android.apps.maps"))
+                            }
                         }
-                    },
-                    onStatusUpdate = { viewModel.updateStatus(order.orderId, it) }
-                )
+                    )
+                } else {
+                    DeliveryOrderCard(
+                        order = order,
+                        onNavigate = {
+                            order.location?.let {
+                                val uri = Uri.parse("google.navigation:q=${it.latitude},${it.longitude}")
+                                context.startActivity(Intent(Intent.ACTION_VIEW, uri).setPackage("com.google.android.apps.maps"))
+                            }
+                        },
+                        onStatusUpdate = { viewModel.updateStatus(order.orderId, it) }
+                    )
+                }
             }
         }
     }
@@ -241,6 +269,32 @@ fun ManagementOrderCard(order: Order, onClick: () -> Unit) {
 }
 
 @Composable
+fun ReadOnlyKitchenOrderCard(order: Order) {
+    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(dimensionResource(R.dimen.radius_large))) {
+        Column(Modifier.padding(dimensionResource(R.dimen.screen_padding))) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text("#${order.orderId.take(8).uppercase()}", fontWeight = FontWeight.Bold)
+                val statusColor = when(order.status) {
+                    OrderStatus.PENDING.name -> Color.Red
+                    OrderStatus.PREPARING.name -> CanteenAmber
+                    else -> CanteenGreen
+                }
+                Text(order.status, color = statusColor, fontWeight = FontWeight.Bold)
+            }
+            order.items.forEach { Text("• ${it.itemName} x${it.quantity}") }
+            if (order.notes.isNotBlank()) Text("Note: ${order.notes}", color = Color.Gray, style = MaterialTheme.typography.bodySmall)
+            
+            Text(
+                text = "Ordered by: ${order.userName}",
+                style = MaterialTheme.typography.labelSmall,
+                modifier = Modifier.padding(top = 8.dp),
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+}
+
+@Composable
 fun KitchenOrderCard(order: Order, onStatusUpdate: (OrderStatus) -> Unit) {
     Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(dimensionResource(R.dimen.radius_large))) {
         Column(Modifier.padding(dimensionResource(R.dimen.screen_padding))) {
@@ -262,6 +316,33 @@ fun KitchenOrderCard(order: Order, onStatusUpdate: (OrderStatus) -> Unit) {
                 } else if (order.status == OrderStatus.PREPARING.name) {
                     Button(onClick = { onStatusUpdate(OrderStatus.READY) }, colors = ButtonDefaults.buttonColors(containerColor = CanteenGreen)) { Text("Ready for Pickup") }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun ReadOnlyDeliveryOrderCard(order: Order, onNavigate: () -> Unit) {
+    Card(Modifier.fillMaxWidth(), shape = RoundedCornerShape(dimensionResource(R.dimen.radius_large))) {
+        Column(Modifier.padding(dimensionResource(R.dimen.screen_padding))) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                Text("Order for ${order.userName}", fontWeight = FontWeight.Bold)
+                val statusColor = when(order.status) {
+                    OrderStatus.DELIVERED.name -> CanteenGreen
+                    OrderStatus.IN_TRANSIT.name -> CanteenAmber
+                    else -> Color.Blue
+                }
+                Text(order.status, color = statusColor, fontWeight = FontWeight.Bold)
+            }
+            Text(order.userPhone, style = MaterialTheme.typography.bodySmall)
+            Text("Items: ${order.items.joinToString { it.itemName }}")
+            
+            HorizontalDivider(Modifier.padding(vertical = dimensionResource(R.dimen.spacing_small)))
+            
+            OutlinedButton(onClick = onNavigate, Modifier.fillMaxWidth()) {
+                Icon(Icons.Default.Navigation, null)
+                Spacer(Modifier.width(dimensionResource(R.dimen.spacing_extra_small)))
+                Text("View Location")
             }
         }
     }
