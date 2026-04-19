@@ -80,4 +80,33 @@ class MenuRepository {
             false
         }
     }
+
+    suspend fun addMenuItem(item: MenuItem): Boolean {
+        return try {
+            val id = if (item.id.isEmpty()) menuCollection.document().id else item.id
+            val finalItem = item.copy(id = id)
+            menuCollection.document(id).set(finalItem).await()
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    suspend fun updateMenuItem(item: MenuItem): Boolean {
+        return try {
+            menuCollection.document(item.id).set(item).await()
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    suspend fun deleteMenuItem(itemId: String): Boolean {
+        return try {
+            menuCollection.document(itemId).delete().await()
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
 }

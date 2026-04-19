@@ -1,6 +1,5 @@
 package com.ndejje.ndejjecanteen.ui.screens
 
-import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -10,6 +9,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Help
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -73,7 +74,7 @@ fun ProfileScreen(
                 title = { Text("My Profile", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold) },
                 actions = {
                     IconButton(onClick = { showLogoutDialog = true }) {
-                        Icon(Icons.Default.Logout, contentDescription = "Logout", tint = MaterialTheme.colorScheme.error)
+                        Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Logout", tint = MaterialTheme.colorScheme.error)
                     }
                 }
             )
@@ -314,7 +315,7 @@ fun ProfileScreen(
                     Text("Support", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_medium)))
                     ProfileInfoItem(
-                        icon = Icons.Default.Help,
+                        icon = Icons.AutoMirrored.Filled.Help,
                         label = "Help Center",
                         value = "FAQs & Contact",
                         onClick = onNavigateToFAQ
@@ -328,32 +329,38 @@ fun ProfileScreen(
 
     if (showPasswordConfirmDialog) {
         AlertDialog(
-            onDismissRequest = { showPasswordConfirmDialog = false },
+            onDismissRequest = { 
+                showPasswordConfirmDialog = false 
+            },
             title = { Text("Confirm Password Change") },
             text = { Text("Are you sure you want to change your password? You will need to use your new password next time you log in.") },
             confirmButton = {
                 Button(
                     onClick = {
-                        showPasswordConfirmDialog = false
                         authViewModel.changePassword(oldPassword, newPassword) { success ->
                             if (success) {
                                 isChangingPassword = false
                                 oldPassword = ""; newPassword = ""; repeatPassword = ""
                             }
                         }
+                        showPasswordConfirmDialog = false
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = CanteenGreen)
                 ) { Text("Yes, Change It") }
             },
             dismissButton = {
-                TextButton(onClick = { showPasswordConfirmDialog = false }) { Text("No, Keep Old") }
+                TextButton(onClick = { 
+                    showPasswordConfirmDialog = false 
+                }) { Text("No, Keep Old") }
             }
         )
     }
 
     if (showLogoutDialog) {
         AlertDialog(
-            onDismissRequest = { showLogoutDialog = false },
+            onDismissRequest = { 
+                showLogoutDialog = false 
+            },
             title = { Text("Logout?") },
             text = { Text("Are you sure you want to sign out of your account?") },
             confirmButton = {
@@ -362,7 +369,9 @@ fun ProfileScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showLogoutDialog = false }) { Text("Cancel") }
+                TextButton(onClick = { 
+                    showLogoutDialog = false 
+                }) { Text("Cancel") }
             }
         )
     }

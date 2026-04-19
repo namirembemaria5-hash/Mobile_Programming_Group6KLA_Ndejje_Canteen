@@ -8,8 +8,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
@@ -25,10 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ndejje.ndejjecanteen.R
-import com.ndejje.ndejjecanteen.data.model.Order
-import com.ndejje.ndejjecanteen.data.model.OrderStatus
-import com.ndejje.ndejjecanteen.data.model.MenuItem
-import com.ndejje.ndejjecanteen.data.model.User
+import com.ndejje.ndejjecanteen.data.model.*
 import com.ndejje.ndejjecanteen.ui.theme.*
 import com.ndejje.ndejjecanteen.ui.viewmodel.ManagementViewModel
 import com.ndejje.ndejjecanteen.utils.formatUGX
@@ -159,19 +158,62 @@ fun KitchenOrdersScreen(viewModel: ManagementViewModel, isAdmin: Boolean = false
                     }
                 }
             } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize().padding(dimensionResource(R.dimen.screen_padding)),
-                    verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_small))
-                ) {
-                    items(menuItems) { item ->
-                        InventoryItemRow(
-                            item = item,
-                            onToggle = { isAvailable -> 
-                                if (!isAdmin) viewModel.toggleItemAvailability(item.id, isAvailable) 
-                            },
-                            readOnly = isAdmin
-                        )
+                var showAddDialog by remember { mutableStateOf(false) }
+                var itemToEdit by remember { mutableStateOf<MenuItem?>(null) }
+
+                Box(modifier = Modifier.fillMaxSize()) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize().padding(dimensionResource(R.dimen.screen_padding)),
+                        verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_small)),
+                        contentPadding = PaddingValues(bottom = 80.dp)
+                    ) {
+                        items(menuItems) { item ->
+                            InventoryItemRow(
+                                item = item,
+                                onToggle = { isAvailable -> 
+                                    if (!isAdmin) viewModel.toggleItemAvailability(item.id, isAvailable) 
+                                },
+                                onEdit = { if (!isAdmin) itemToEdit = item },
+                                readOnly = isAdmin
+                            )
+                        }
                     }
+
+                    if (!isAdmin) {
+                        FloatingActionButton(
+                            onClick = { showAddDialog = true },
+                            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
+                            containerColor = CanteenGreen,
+                            contentColor = Color.White
+                        ) {
+                            Icon(Icons.Default.Add, "Add Item")
+                        }
+                    }
+                }
+
+                if (showAddDialog) {
+                    AddEditMenuItemDialog(
+                        onDismiss = { showAddDialog = false },
+                        onConfirm = { newItem ->
+                            viewModel.addMenuItem(newItem)
+                            showAddDialog = false
+                        }
+                    )
+                }
+
+                if (itemToEdit != null) {
+                    AddEditMenuItemDialog(
+                        item = itemToEdit,
+                        onDismiss = { itemToEdit = null },
+                        onConfirm = { updatedItem ->
+                            viewModel.updateMenuItem(updatedItem)
+                            itemToEdit = null
+                        },
+                        onDelete = {
+                            viewModel.deleteMenuItem(itemToEdit!!.id)
+                            itemToEdit = null
+                        }
+                    )
                 }
             }
         }
@@ -251,9 +293,16 @@ fun KitchenOrdersScreen(viewModel: ManagementViewModel, isAdmin: Boolean = false
 }
 
 @Composable
-fun InventoryItemRow(item: MenuItem, onToggle: (Boolean) -> Unit, readOnly: Boolean = false) {
+fun InventoryItemRow(
+    item: MenuItem, 
+    onToggle: (Boolean) -> Unit, 
+    onEdit: () -> Unit = {},
+    readOnly: Boolean = false
+) {
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().then(
+            if (!readOnly) Modifier.clickable { onEdit() } else Modifier
+        ),
         shape = RoundedCornerShape(dimensionResource(R.dimen.radius_medium))
     ) {
         Row(
@@ -263,7 +312,7 @@ fun InventoryItemRow(item: MenuItem, onToggle: (Boolean) -> Unit, readOnly: Bool
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(item.name, fontWeight = FontWeight.Bold)
-                Text(item.category, style = MaterialTheme.typography.bodySmall)
+                Text("${item.category} • ${formatUGX(item.price)}", style = MaterialTheme.typography.bodySmall)
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
@@ -280,6 +329,129 @@ fun InventoryItemRow(item: MenuItem, onToggle: (Boolean) -> Unit, readOnly: Bool
             }
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AddEditMenuItemDialog(
+    item: MenuItem? = null,
+    onDismiss: () -> Unit,
+    onConfirm: (MenuItem) -> Unit,
+    onDelete: (() -> Unit)? = null
+) {
+    var name by remember { mutableStateOf(item?.name ?: "") }
+    var description by remember { mutableStateOf(item?.description ?: "") }
+    var price by remember { mutableStateOf(item?.price?.toInt()?.toString() ?: "") }
+    var category by remember { mutableStateOf(item?.category ?: MenuCategory.SNACKS.name) }
+    var subCategory by remember { mutableStateOf(item?.subCategory ?: "") }
+    var isAvailable by remember { mutableStateOf(item?.isAvailable ?: true) }
+    
+    var categoryExpanded by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(if (item == null) "Add New Item" else "Edit Item") },
+        text = {
+            Column(
+                modifier = Modifier.fillMaxWidth().verticalScroll(androidx.compose.foundation.rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { name = it },
+                    label = { Text("Item Name") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text("Description") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                OutlinedTextField(
+                    value = price,
+                    onValueChange = { price = it },
+                    label = { Text("Price (UGX)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                        keyboardType = androidx.compose.ui.text.input.KeyboardType.Number
+                    )
+                )
+                
+                ExposedDropdownMenuBox(
+                    expanded = categoryExpanded,
+                    onExpandedChange = { categoryExpanded = it }
+                ) {
+                    OutlinedTextField(
+                        value = category,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Category") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = categoryExpanded) },
+                        modifier = Modifier.menuAnchor().fillMaxWidth()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = categoryExpanded,
+                        onDismissRequest = { categoryExpanded = false }
+                    ) {
+                        MenuCategory.entries.forEach { cat ->
+                            DropdownMenuItem(
+                                text = { Text(cat.name) },
+                                onClick = {
+                                    category = cat.name
+                                    categoryExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                OutlinedTextField(
+                    value = subCategory,
+                    onValueChange = { subCategory = it },
+                    label = { Text("Sub-category (Optional)") },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(checked = isAvailable, onCheckedChange = { isAvailable = it })
+                    Text("Available for Order")
+                }
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = {
+                    val menuItem = MenuItem(
+                        id = item?.id ?: "",
+                        name = name,
+                        description = description,
+                        price = price.toDoubleOrNull() ?: 0.0,
+                        category = category,
+                        subCategory = subCategory,
+                        isAvailable = isAvailable,
+                        imageUrl = item?.imageUrl ?: ""
+                    )
+                    onConfirm(menuItem)
+                },
+                enabled = name.isNotBlank() && price.isNotBlank()
+            ) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            Row {
+                if (onDelete != null) {
+                    TextButton(onClick = onDelete) {
+                        Text("Delete", color = Color.Red)
+                    }
+                }
+                TextButton(onClick = onDismiss) {
+                    Text("Cancel")
+                }
+            }
+        }
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

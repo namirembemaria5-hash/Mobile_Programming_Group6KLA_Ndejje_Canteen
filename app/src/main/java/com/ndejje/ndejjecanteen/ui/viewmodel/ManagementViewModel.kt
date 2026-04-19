@@ -162,4 +162,22 @@ class ManagementViewModel : ViewModel() {
             menuRepository.updateItemAvailability(itemId, isAvailable)
         }
     }
+
+    fun addMenuItem(item: MenuItem) {
+        viewModelScope.launch {
+            menuRepository.addMenuItem(item)
+        }
+    }
+
+    fun updateMenuItem(item: MenuItem) {
+        viewModelScope.launch {
+            menuRepository.updateMenuItem(item)
+        }
+    }
+
+    fun deleteMenuItem(itemId: String) {
+        viewModelScope.launch {
+            menuRepository.deleteMenuItem(itemId)
+        }
+    }
 }
