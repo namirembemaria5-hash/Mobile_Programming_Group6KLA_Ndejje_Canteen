@@ -22,6 +22,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ndejje.ndejjecanteen.R
@@ -33,11 +34,18 @@ import com.ndejje.ndejjecanteen.ui.viewmodel.AuthViewModel
 fun ProfileScreen(
     authViewModel: AuthViewModel,
     onLogout: () -> Unit,
-    onNavigateToFAQ: () -> Unit
+    onNavigateToFAQ: () -> Unit,
+    onNavigateToLogin: () -> Unit = {}
 ) {
+    val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
     val userProfile by authViewModel.userProfile.collectAsState()
     val uiState by authViewModel.uiState.collectAsState()
     val currentEmail = authViewModel.currentUserEmail ?: ""
+
+    if (!isLoggedIn) {
+        GuestProfileContent(onNavigateToLogin, onNavigateToFAQ)
+        return
+    }
 
     var isEditing by remember { mutableStateOf(false) }
     var editName by remember { mutableStateOf("") }
@@ -357,6 +365,81 @@ fun ProfileScreen(
                 TextButton(onClick = { showLogoutDialog = false }) { Text("Cancel") }
             }
         )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun GuestProfileContent(onNavigateToLogin: () -> Unit, onNavigateToFAQ: () -> Unit) {
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("Profile", fontWeight = FontWeight.Bold) }
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(120.dp)
+                    .clip(CircleShape)
+                    .background(CanteenGreen.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Default.Person,
+                    contentDescription = null,
+                    modifier = Modifier.size(64.dp),
+                    tint = CanteenGreen
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                "Guest Mode",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                "Sign in to access your order history, manage your profile, and speed up your checkout process.",
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                modifier = Modifier.padding(vertical = 16.dp)
+            )
+
+            Button(
+                onClick = onNavigateToLogin,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = CanteenGreen)
+            ) {
+                Text("Sign In / Register", style = MaterialTheme.typography.titleMedium)
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedButton(
+                onClick = onNavigateToFAQ,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Text("View FAQs", style = MaterialTheme.typography.titleMedium)
+            }
+        }
     }
 }
 

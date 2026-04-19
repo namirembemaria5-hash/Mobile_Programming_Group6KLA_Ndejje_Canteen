@@ -17,8 +17,6 @@ fun CanteenNavGraph(
     managementViewModel: ManagementViewModel,
     modifier: Modifier = Modifier
 ) {
-    val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
-
     NavHost(
         navController = navController,
         startDestination = Screen.Home.route,
@@ -117,19 +115,16 @@ fun CanteenNavGraph(
         }
 
         composable(Screen.Orders.route) {
-            if (!isLoggedIn) {
-                LaunchedEffect(Unit) {
+            OrderHistoryScreen(
+                authViewModel = authViewModel,
+                orderViewModel = orderViewModel,
+                onOrderClick = { orderId ->
+                    navController.navigate(Screen.OrderStatus.createRoute(orderId))
+                },
+                onNavigateToLogin = {
                     navController.navigate(Screen.Login.route)
                 }
-            } else {
-                OrderHistoryScreen(
-                    authViewModel = authViewModel,
-                    orderViewModel = orderViewModel,
-                    onOrderClick = { orderId ->
-                        navController.navigate(Screen.OrderStatus.createRoute(orderId))
-                    }
-                )
-            }
+            )
         }
 
         composable(Screen.OrderStatus.route) { backStackEntry ->
@@ -142,23 +137,20 @@ fun CanteenNavGraph(
         }
 
         composable(Screen.Profile.route) {
-            if (!isLoggedIn) {
-                LaunchedEffect(Unit) {
+            ProfileScreen(
+                authViewModel = authViewModel,
+                onLogout = {
+                    authViewModel.signOut()
+                    cartViewModel.clearCart()
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+                onNavigateToFAQ = { navController.navigate(Screen.FAQ.route) },
+                onNavigateToLogin = {
                     navController.navigate(Screen.Login.route)
                 }
-            } else {
-                ProfileScreen(
-                    authViewModel = authViewModel,
-                    onLogout = {
-                        navController.navigate(Screen.Home.route) {
-                            popUpTo(0) { inclusive = true }
-                        }
-                        authViewModel.signOut()
-                        cartViewModel.clearCart()
-                    },
-                    onNavigateToFAQ = { navController.navigate(Screen.FAQ.route) }
-                )
-            }
+            )
         }
 
         // Management Routes
@@ -166,11 +158,11 @@ fun CanteenNavGraph(
             AdminDashboardScreen(
                 viewModel = managementViewModel,
                 onLogout = {
+                    authViewModel.signOut()
+                    cartViewModel.clearCart()
                     navController.navigate(Screen.Home.route) {
                         popUpTo(0) { inclusive = true }
                     }
-                    authViewModel.signOut()
-                    cartViewModel.clearCart()
                 },
                 onNavigateToFAQ = { navController.navigate(Screen.FAQ.route) }
             )

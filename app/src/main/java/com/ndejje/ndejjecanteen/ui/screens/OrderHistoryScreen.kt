@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ndejje.ndejjecanteen.R
@@ -30,10 +31,17 @@ import java.util.*
 fun OrderHistoryScreen(
     authViewModel: AuthViewModel,
     orderViewModel: OrderViewModel,
-    onOrderClick: (String) -> Unit
+    onOrderClick: (String) -> Unit,
+    onNavigateToLogin: () -> Unit = {}
 ) {
+    val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
     val userOrders by orderViewModel.orders.collectAsState()
     val userId = authViewModel.currentUserId
+
+    if (!isLoggedIn) {
+        GuestOrderHistoryContent(onNavigateToLogin)
+        return
+    }
 
     LaunchedEffect(userId) {
         userId?.let { orderViewModel.loadUserOrders(it) }
@@ -75,6 +83,46 @@ fun OrderHistoryScreen(
                 items(userOrders, key = { it.orderId }) { order ->
                     OrderHistoryCard(order = order, onClick = { onOrderClick(order.orderId) })
                 }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun GuestOrderHistoryContent(onNavigateToLogin: () -> Unit) {
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("My Orders", fontWeight = FontWeight.Bold) }
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text("📋", fontSize = 80.sp)
+            Spacer(modifier = Modifier.height(24.dp))
+            Text("Sign in to see your orders", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Text(
+                "Once you log in, you can track your current orders and view your purchase history.",
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                modifier = Modifier.padding(vertical = 16.dp)
+            )
+            Button(
+                onClick = onNavigateToLogin,
+                modifier = Modifier.fillMaxWidth().height(56.dp),
+                shape = RoundedCornerShape(16.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = CanteenGreen)
+            ) {
+                Text("Log In Now", style = MaterialTheme.typography.titleMedium)
             }
         }
     }
