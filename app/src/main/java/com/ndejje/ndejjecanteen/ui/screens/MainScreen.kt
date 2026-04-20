@@ -76,7 +76,13 @@ fun MainScreen() {
                                     }
                                 },
                                 label = { Text(item.label) },
-                                selected = currentDestination?.hierarchy?.any { it.route == item.route } == true,
+                                selected = currentDestination?.hierarchy?.any { h ->
+                                    when (item.route) {
+                                        Screen.Home.route -> h.route == Screen.Home.route || h.route?.startsWith("menu") == true || h.route == Screen.FAQ.route
+                                        Screen.Orders.route -> h.route == Screen.Orders.route || h.route?.startsWith("order_status") == true
+                                        else -> h.route == item.route
+                                    }
+                                } == true,
                                 onClick = {
                                     navController.navigate(item.route) {
                                         popUpTo(navController.graph.findStartDestination().id) {

@@ -91,14 +91,14 @@ fun ProfileScreen(
             // Profile Header
             Box(
                 modifier = Modifier
-                    .size(100.dp)
+                    .size(dimensionResource(R.dimen.image_size_medium))
                     .clip(CircleShape)
                     .background(CanteenGreen.copy(alpha = 0.1f)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = (userProfile?.name?.take(1) ?: "S").uppercase(),
-                    fontSize = 40.sp,
+                    fontSize = dimensionResource(R.dimen.text_size_heading_large).value.sp,
                     fontWeight = FontWeight.Bold,
                     color = CanteenGreen
                 )
@@ -123,15 +123,15 @@ fun ProfileScreen(
             uiState.error?.let { error ->
                 Card(
                     colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-                    modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp)
+                    modifier = Modifier.fillMaxWidth().padding(bottom = dimensionResource(R.dimen.spacing_large))
                 ) {
-                    Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Row(Modifier.padding(dimensionResource(R.dimen.spacing_medium)), verticalAlignment = Alignment.CenterVertically) {
                         Icon(Icons.Default.Error, null, tint = MaterialTheme.colorScheme.error)
-                        Spacer(Modifier.width(8.dp))
+                        Spacer(Modifier.width(dimensionResource(R.dimen.spacing_small)))
                         Text(error, color = MaterialTheme.colorScheme.onErrorContainer, style = MaterialTheme.typography.bodySmall)
                         Spacer(Modifier.weight(1f))
                         IconButton(onClick = { authViewModel.clearError() }) {
-                            Icon(Icons.Default.Close, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(16.dp))
+                            Icon(Icons.Default.Close, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(dimensionResource(R.dimen.icon_size_small)))
                         }
                     }
                 }
@@ -141,7 +141,7 @@ fun ProfileScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(dimensionResource(R.dimen.radius_extra_large)),
-                elevation = CardDefaults.cardElevation(2.dp)
+                elevation = CardDefaults.cardElevation(dimensionResource(R.dimen.elevation_small))
             ) {
                 Column(modifier = Modifier.padding(dimensionResource(R.dimen.screen_padding_large))) {
                     Row(
@@ -195,7 +195,11 @@ fun ProfileScreen(
                                 shape = RoundedCornerShape(dimensionResource(R.dimen.radius_medium)),
                                 colors = ButtonDefaults.buttonColors(containerColor = CanteenGreen)
                             ) {
-                                if (uiState.isLoading) CircularProgressIndicator(Modifier.size(20.dp), color = Color.White)
+                                if (uiState.isLoading) CircularProgressIndicator(
+                                    modifier = Modifier.size(dimensionResource(R.dimen.icon_size_small)),
+                                    color = Color.White,
+                                    strokeWidth = dimensionResource(R.dimen.border_width_thick)
+                                )
                                 else Text("Save")
                             }
                         }
@@ -215,7 +219,7 @@ fun ProfileScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(dimensionResource(R.dimen.radius_extra_large)),
-                elevation = CardDefaults.cardElevation(2.dp)
+                elevation = CardDefaults.cardElevation(dimensionResource(R.dimen.elevation_small))
             ) {
                 Column(modifier = Modifier.padding(dimensionResource(R.dimen.screen_padding_large))) {
                     Row(
@@ -239,7 +243,7 @@ fun ProfileScreen(
                             onValueChange = { oldPassword = it },
                             label = { Text("Old Password") },
                             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
+                            modifier = Modifier.fillMaxWidth().padding(bottom = dimensionResource(R.dimen.spacing_small)),
                             trailingIcon = {
                                 IconButton(onClick = { passwordVisible = !passwordVisible }) {
                                     Icon(if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility, null)
@@ -252,7 +256,7 @@ fun ProfileScreen(
                             onValueChange = { newPassword = it },
                             label = { Text("New Password") },
                             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+                            modifier = Modifier.fillMaxWidth().padding(bottom = dimensionResource(R.dimen.spacing_small))
                         )
 
                         OutlinedTextField(
@@ -260,7 +264,7 @@ fun ProfileScreen(
                             onValueChange = { repeatPassword = it },
                             label = { Text("Repeat New Password") },
                             visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                            modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp),
+                            modifier = Modifier.fillMaxWidth().padding(bottom = dimensionResource(R.dimen.spacing_large)),
                             isError = repeatPassword.isNotEmpty() && repeatPassword != newPassword,
                             supportingText = {
                                 if (repeatPassword.isNotEmpty() && repeatPassword != newPassword) {
@@ -271,7 +275,7 @@ fun ProfileScreen(
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_small))
                         ) {
                             OutlinedButton(
                                 onClick = { 
@@ -293,10 +297,10 @@ fun ProfileScreen(
                             ) { Text("Update") }
                         }
                     } else {
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_small)))
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.Lock, null, tint = CanteenGreen, modifier = Modifier.size(20.dp))
-                            Spacer(Modifier.width(12.dp))
+                            Icon(Icons.Default.Lock, null, tint = CanteenGreen, modifier = Modifier.size(dimensionResource(R.dimen.radius_extra_large)))
+                            Spacer(Modifier.width(dimensionResource(R.dimen.spacing_medium)))
                             Text("Password last changed: Recently", style = MaterialTheme.typography.bodyMedium)
                         }
                     }
@@ -309,18 +313,22 @@ fun ProfileScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(dimensionResource(R.dimen.radius_extra_large)),
-                elevation = CardDefaults.cardElevation(2.dp)
+                elevation = CardDefaults.cardElevation(dimensionResource(R.dimen.elevation_small))
             ) {
                 Column(modifier = Modifier.padding(dimensionResource(R.dimen.screen_padding_large))) {
                     Text("Support", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_medium)))
-                    ProfileInfoItem(
-                        icon = Icons.AutoMirrored.Filled.Help,
-                        label = "Help Center",
-                        value = "FAQs & Contact",
-                        onClick = onNavigateToFAQ
-                    )
-                    HorizontalDivider(modifier = Modifier.padding(vertical = dimensionResource(R.dimen.spacing_medium)), color = MaterialTheme.colorScheme.surfaceVariant)
+                    
+                    if (userProfile?.role == "USER") {
+                        ProfileInfoItem(
+                            icon = Icons.AutoMirrored.Filled.Help,
+                            label = "Help Center",
+                            value = "FAQs & Contact",
+                            onClick = onNavigateToFAQ
+                        )
+                        HorizontalDivider(modifier = Modifier.padding(vertical = dimensionResource(R.dimen.spacing_medium)), color = MaterialTheme.colorScheme.surfaceVariant)
+                    }
+
                     ProfileInfoItem(icon = Icons.Default.Info, label = "App Version", value = "1.0.0")
                 }
             }
@@ -391,13 +399,13 @@ fun GuestProfileContent(onNavigateToLogin: () -> Unit, onNavigateToFAQ: () -> Un
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(24.dp),
+                .padding(dimensionResource(R.dimen.screen_padding_extra_large)),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             Box(
                 modifier = Modifier
-                    .size(120.dp)
+                    .size(dimensionResource(R.dimen.image_size_large))
                     .clip(CircleShape)
                     .background(CanteenGreen.copy(alpha = 0.1f)),
                 contentAlignment = Alignment.Center
@@ -405,12 +413,12 @@ fun GuestProfileContent(onNavigateToLogin: () -> Unit, onNavigateToFAQ: () -> Un
                 Icon(
                     Icons.Default.Person,
                     contentDescription = null,
-                    modifier = Modifier.size(64.dp),
+                    modifier = Modifier.size(dimensionResource(R.dimen.image_size_small)),
                     tint = CanteenGreen
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_extra_large)))
 
             Text(
                 "Guest Mode",
@@ -423,28 +431,28 @@ fun GuestProfileContent(onNavigateToLogin: () -> Unit, onNavigateToFAQ: () -> Un
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                modifier = Modifier.padding(vertical = 16.dp)
+                modifier = Modifier.padding(vertical = dimensionResource(R.dimen.spacing_large))
             )
 
             Button(
                 onClick = onNavigateToLogin,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(16.dp),
+                    .height(dimensionResource(R.dimen.button_height_standard)),
+                shape = RoundedCornerShape(dimensionResource(R.dimen.radius_large)),
                 colors = ButtonDefaults.buttonColors(containerColor = CanteenGreen)
             ) {
                 Text("Sign In / Register", style = MaterialTheme.typography.titleMedium)
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_large)))
 
             OutlinedButton(
                 onClick = onNavigateToFAQ,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
-                shape = RoundedCornerShape(16.dp)
+                    .height(dimensionResource(R.dimen.button_height_standard)),
+                shape = RoundedCornerShape(dimensionResource(R.dimen.radius_large))
             ) {
                 Text("View FAQs", style = MaterialTheme.typography.titleMedium)
             }

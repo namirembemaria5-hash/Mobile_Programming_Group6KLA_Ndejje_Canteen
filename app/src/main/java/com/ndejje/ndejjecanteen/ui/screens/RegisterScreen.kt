@@ -76,7 +76,10 @@ fun RegisterScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .padding(
+                        horizontal = dimensionResource(R.dimen.screen_padding),
+                        vertical = dimensionResource(R.dimen.spacing_small)
+                    ),
                 horizontalArrangement = Arrangement.Start
             ) {
                 IconButton(
@@ -115,7 +118,7 @@ fun RegisterScreen(
                     .padding(horizontal = dimensionResource(R.dimen.screen_padding_extra_large)),
                 shape = RoundedCornerShape(dimensionResource(R.dimen.radius_card)),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(8.dp)
+                elevation = CardDefaults.cardElevation(dimensionResource(R.dimen.elevation_medium))
             ) {
                 Column(
                     modifier = Modifier
@@ -226,7 +229,11 @@ fun RegisterScreen(
                         enabled = !uiState.isLoading,
                         colors = ButtonDefaults.buttonColors(containerColor = CanteenGreen)
                     ) {
-                        if (uiState.isLoading) CircularProgressIndicator(modifier = Modifier.size(dimensionResource(R.dimen.icon_size_medium)), color = Color.White, strokeWidth = 2.dp)
+                        if (uiState.isLoading) CircularProgressIndicator(
+                            modifier = Modifier.size(dimensionResource(R.dimen.icon_size_medium)),
+                            color = Color.White,
+                            strokeWidth = dimensionResource(R.dimen.border_width_medium)
+                        )
                         else Text("Create Account", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     }
 
@@ -241,7 +248,7 @@ fun RegisterScreen(
 
                     TextButton(
                         onClick = onNavigateToFAQ,
-                        modifier = Modifier.padding(top = 8.dp)
+                        modifier = Modifier.padding(top = dimensionResource(R.dimen.spacing_small))
                     ) {
                         Text(
                             "Frequently Asked Questions (FAQs)",

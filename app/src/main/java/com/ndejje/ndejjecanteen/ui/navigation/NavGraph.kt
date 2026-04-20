@@ -75,7 +75,9 @@ fun CanteenNavGraph(
                             popUpTo(Screen.Home.route) { inclusive = true }
                         }
                     } else {
-                        navController.popBackStack()
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Home.route) { inclusive = true }
+                        }
                     }
                 },
                 onNavigateToRegister = {
@@ -163,8 +165,7 @@ fun CanteenNavGraph(
                     navController.navigate(Screen.Home.route) {
                         popUpTo(0) { inclusive = true }
                     }
-                },
-                onNavigateToFAQ = { navController.navigate(Screen.FAQ.route) }
+                }
             )
         }
         composable(Screen.KitchenOrders.route) {

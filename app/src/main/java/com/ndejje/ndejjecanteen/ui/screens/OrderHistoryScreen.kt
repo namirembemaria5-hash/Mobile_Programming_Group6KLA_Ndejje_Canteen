@@ -102,24 +102,24 @@ fun GuestOrderHistoryContent(onNavigateToLogin: () -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(24.dp),
+                .padding(dimensionResource(R.dimen.screen_padding_extra_large)),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text("📋", fontSize = 80.sp)
-            Spacer(modifier = Modifier.height(24.dp))
+            Text("📋", fontSize = dimensionResource(R.dimen.text_size_emoji_huge).value.sp)
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.screen_padding_extra_large)))
             Text("Sign in to see your orders", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
             Text(
                 "Once you log in, you can track your current orders and view your purchase history.",
                 style = MaterialTheme.typography.bodyMedium,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-                modifier = Modifier.padding(vertical = 16.dp)
+                modifier = Modifier.padding(vertical = dimensionResource(R.dimen.screen_padding))
             )
             Button(
                 onClick = onNavigateToLogin,
-                modifier = Modifier.fillMaxWidth().height(56.dp),
-                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth().height(dimensionResource(R.dimen.box_size_extra_large)),
+                shape = RoundedCornerShape(dimensionResource(R.dimen.radius_large)),
                 colors = ButtonDefaults.buttonColors(containerColor = CanteenGreen)
             ) {
                 Text("Log In Now", style = MaterialTheme.typography.titleMedium)
@@ -146,7 +146,7 @@ fun OrderHistoryCard(order: Order, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(dimensionResource(R.dimen.radius_large)),
-        elevation = CardDefaults.cardElevation(3.dp)
+        elevation = CardDefaults.cardElevation(dimensionResource(R.dimen.elevation_medium))
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(dimensionResource(R.dimen.screen_padding)),

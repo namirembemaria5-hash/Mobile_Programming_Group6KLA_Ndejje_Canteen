@@ -6,6 +6,7 @@
     <dimen name="screen_padding_extra_large">24dp</dimen>
 
     <!-- Component spacing -->
+    <dimen name="spacing_tiny">2dp</dimen>
     <dimen name="spacing_extra_small">4dp</dimen>
     <dimen name="spacing_small">8dp</dimen>
     <dimen name="spacing_medium">12dp</dimen>
@@ -13,6 +14,7 @@
     <dimen name="spacing_extra_large">24dp</dimen>
     <dimen name="spacing_huge">32dp</dimen>
     <dimen name="spacing_giant">48dp</dimen>
+    <dimen name="spacing_fab_safe">80dp</dimen>
 
     <!-- Corner Radii -->
     <dimen name="radius_small">8dp</dimen>
@@ -25,12 +27,26 @@
     <!-- Icon and Box sizes -->
     <dimen name="icon_size_small">16dp</dimen>
     <dimen name="icon_size_medium">24dp</dimen>
+    <dimen name="icon_size_button_small">30dp</dimen>
     <dimen name="icon_size_large">32dp</dimen>
     <dimen name="box_size_medium">48dp</dimen>
     <dimen name="box_size_large">52dp</dimen>
     <dimen name="box_size_extra_large">56dp</dimen>
+    <dimen name="box_size_status">150dp</dimen>
 
-    <!-- Text Sizes -->
+    <dimen name="elevation_small">2dp</dimen>
+    <dimen name="elevation_medium">4dp</dimen>
+    <dimen name="elevation_large">8dp</dimen>
+    <dimen name="elevation_extra_large">12dp</dimen>
+    <dimen name="border_width_thin">1dp</dimen>
+    <dimen name="border_width_medium">1.5dp</dimen>
+    <dimen name="border_width_thick">2dp</dimen>
+    <dimen name="image_size_large">120dp</dimen>
+    <dimen name="image_size_medium">100dp</dimen>
+    <dimen name="image_size_small">64dp</dimen>
+    <dimen name="button_height_standard">56dp</dimen>
+    <dimen name="card_aspect_ratio_standard">1.1</dimen>
+
     <dimen name="text_size_small">12sp</dimen>
     <dimen name="text_size_medium">14sp</dimen>
     <dimen name="text_size_large">16sp</dimen>
@@ -39,4 +55,5 @@
     <dimen name="text_size_heading_large">24sp</dimen>
     <dimen name="text_size_display">32sp</dimen>
     <dimen name="text_size_emoji_large">56sp</dimen>
+    <dimen name="text_size_emoji_huge">80sp</dimen>
 </resources>

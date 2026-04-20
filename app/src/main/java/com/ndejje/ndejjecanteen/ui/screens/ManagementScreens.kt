@@ -36,8 +36,7 @@ import com.ndejje.ndejjecanteen.utils.formatUGX
 @Composable
 fun AdminDashboardScreen(
     viewModel: ManagementViewModel,
-    onLogout: () -> Unit,
-    onNavigateToFAQ: () -> Unit
+    onLogout: () -> Unit
 ) {
     val analytics by viewModel.analytics.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
@@ -45,12 +44,7 @@ fun AdminDashboardScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Admin Dashboard", fontWeight = FontWeight.Bold) },
-                actions = {
-                    IconButton(onClick = onLogout) {
-                        Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Logout")
-                    }
-                }
+                title = { Text("Admin Dashboard", fontWeight = FontWeight.Bold) }
             )
         }
     ) { padding ->
@@ -68,11 +62,6 @@ fun AdminDashboardScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("Daily Analytics", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                        TextButton(onClick = onNavigateToFAQ) {
-                            Icon(Icons.Default.QuestionMark, null, Modifier.size(20.dp))
-                            Spacer(Modifier.width(4.dp))
-                            Text("Help")
-                        }
                     }
                     Row(
                         Modifier.fillMaxWidth().padding(vertical = dimensionResource(R.dimen.spacing_small)), 
@@ -130,10 +119,10 @@ fun KitchenOrdersScreen(viewModel: ManagementViewModel, isAdmin: Boolean = false
         Column(modifier = Modifier.padding(padding)) {
             TabRow(selectedTabIndex = selectedTab) {
                 Tab(selected = selectedTab == 0, onClick = { selectedTab = 0 }) {
-                    Text("Orders (${kitchenOrders.size})", modifier = Modifier.padding(16.dp))
+                    Text("Orders (${kitchenOrders.size})", modifier = Modifier.padding(dimensionResource(R.dimen.screen_padding)))
                 }
                 Tab(selected = selectedTab == 1, onClick = { selectedTab = 1 }) {
-                    Text("Inventory", modifier = Modifier.padding(16.dp))
+                    Text("Inventory", modifier = Modifier.padding(dimensionResource(R.dimen.screen_padding)))
                 }
             }
 
@@ -165,7 +154,7 @@ fun KitchenOrdersScreen(viewModel: ManagementViewModel, isAdmin: Boolean = false
                     LazyColumn(
                         modifier = Modifier.fillMaxSize().padding(dimensionResource(R.dimen.screen_padding)),
                         verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_small)),
-                        contentPadding = PaddingValues(bottom = 80.dp)
+                        contentPadding = PaddingValues(bottom = dimensionResource(R.dimen.spacing_fab_safe))
                     ) {
                         items(menuItems) { item ->
                             InventoryItemRow(
@@ -182,7 +171,7 @@ fun KitchenOrdersScreen(viewModel: ManagementViewModel, isAdmin: Boolean = false
                     if (!isAdmin) {
                         FloatingActionButton(
                             onClick = { showAddDialog = true },
-                            modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp),
+                            modifier = Modifier.align(Alignment.BottomEnd).padding(dimensionResource(R.dimen.screen_padding)),
                             containerColor = CanteenGreen,
                             contentColor = Color.White
                         ) {
@@ -230,12 +219,13 @@ fun KitchenOrdersScreen(viewModel: ManagementViewModel, isAdmin: Boolean = false
             text = {
                 Column {
                     Text("Select an available delivery person for Order #${orderToAssign!!.orderId.take(8).uppercase()}")
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(dimensionResource(R.dimen.spacing_large)))
                     
                     Box(modifier = Modifier.fillMaxWidth()) {
                         OutlinedButton(
                             onClick = { expanded = true },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(dimensionResource(R.dimen.radius_button))
                         ) {
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
@@ -319,7 +309,7 @@ fun InventoryItemRow(
                     if (item.isAvailable) "Available" else "Out of Stock",
                     style = MaterialTheme.typography.labelMedium,
                     color = if (item.isAvailable) CanteenGreen else Color.Red,
-                    modifier = Modifier.padding(end = 8.dp)
+                    modifier = Modifier.padding(end = dimensionResource(R.dimen.spacing_small))
                 )
                 Switch(
                     checked = item.isAvailable,
@@ -354,7 +344,7 @@ fun AddEditMenuItemDialog(
         text = {
             Column(
                 modifier = Modifier.fillMaxWidth().verticalScroll(androidx.compose.foundation.rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_small))
             ) {
                 OutlinedTextField(
                     value = name,
@@ -559,7 +549,7 @@ fun ReadOnlyKitchenOrderCard(order: Order) {
             Text(
                 text = "Ordered by: ${order.userName}",
                 style = MaterialTheme.typography.labelSmall,
-                modifier = Modifier.padding(top = 8.dp),
+                modifier = Modifier.padding(top = dimensionResource(R.dimen.spacing_small)),
                 color = MaterialTheme.colorScheme.primary
             )
         }

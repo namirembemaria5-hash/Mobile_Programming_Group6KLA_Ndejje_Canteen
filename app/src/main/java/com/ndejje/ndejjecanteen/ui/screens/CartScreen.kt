@@ -61,7 +61,7 @@ fun CartScreen(
     var locationStatus by remember { mutableStateOf("Tap to get location") }
     var currentLocation by remember { mutableStateOf<OrderLocation?>(null) }
     var showClearDialog by remember { mutableStateOf(false) }
-    var selectedPaymentMethod by remember { mutableStateOf(PaymentMethod.CASH) }
+    var selectedPaymentMethod by remember { mutableStateOf(PaymentMethod.MTN_MOMO) }
     var mobileMoneyNumber by remember { mutableStateOf("") }
 
     // Pre-fill phone number from profile
@@ -271,8 +271,8 @@ fun CartScreen(
                                     containerColor = if (isSelected) CanteenGreen.copy(alpha = 0.1f) 
                                                      else MaterialTheme.colorScheme.surface
                                 ),
-                                border = if (isSelected) BorderStroke(2.dp, CanteenGreen) 
-                                         else BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
+                                border = if (isSelected) BorderStroke(dimensionResource(R.dimen.border_width_thick), CanteenGreen) 
+                                         else BorderStroke(dimensionResource(R.dimen.border_width_thin), MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
                             ) {
                                 Row(
                                     modifier = Modifier.padding(dimensionResource(R.dimen.screen_padding)),
@@ -385,13 +385,13 @@ fun CartScreen(
                             .fillMaxWidth()
                             .height(dimensionResource(R.dimen.box_size_extra_large)),
                         shape = RoundedCornerShape(dimensionResource(R.dimen.radius_large)),
-                        enabled = !isLoading && isNumberValid,
+                        enabled = !isLoading && isNumberValid && currentLocation != null,
                         colors = ButtonDefaults.buttonColors(containerColor = CanteenGreen)
                     ) {
                         if (isLoading) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 CircularProgressIndicator(modifier = Modifier.size(dimensionResource(R.dimen.icon_size_medium)),
-                                    color = Color.White, strokeWidth = 2.dp)
+                                    color = Color.White, strokeWidth = dimensionResource(R.dimen.border_width_thick))
                                 if (orderState is OrderUiState.ProcessingPayment) {
                                     Spacer(modifier = Modifier.width(dimensionResource(R.dimen.spacing_medium)))
                                     Text("Processing ${(orderState as OrderUiState.ProcessingPayment).method}...")
@@ -402,9 +402,10 @@ fun CartScreen(
                                 modifier = Modifier.size(dimensionResource(R.dimen.icon_size_medium)))
                             Spacer(modifier = Modifier.width(dimensionResource(R.dimen.spacing_small)))
                             val buttonText = if (isLoggedIn) {
-                                when (selectedPaymentMethod) {
-                                    PaymentMethod.CASH -> "Place Order — ${formatUGX(totalPrice)}"
-                                    else -> if (isNumberValid) "Pay & Order — ${formatUGX(totalPrice)}" else "Enter Phone Number"
+                                if (currentLocation == null) {
+                                    "Capture Location to Continue"
+                                } else {
+                                    if (isNumberValid) "Pay & Order — ${formatUGX(totalPrice)}" else "Enter Phone Number"
                                 }
                             } else "Sign in to Order"
                             
@@ -451,7 +452,7 @@ fun CartItemCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(dimensionResource(R.dimen.radius_large)),
-        elevation = CardDefaults.cardElevation(2.dp)
+        elevation = CardDefaults.cardElevation(dimensionResource(R.dimen.elevation_small))
     ) {
         Row(
             modifier = Modifier
@@ -486,7 +487,7 @@ fun CartItemCard(
             }
             Row(verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_extra_small))) {
-                FilledIconButton(onClick = onRemove, modifier = Modifier.size(30.dp),
+                FilledIconButton(onClick = onRemove, modifier = Modifier.size(dimensionResource(R.dimen.icon_size_button_small)),
                     colors = IconButtonDefaults.filledIconButtonColors(
                         containerColor = CanteenGreen.copy(alpha = 0.15f),
                         contentColor = CanteenGreen)) {
@@ -494,14 +495,14 @@ fun CartItemCard(
                 }
                 Text(cartItem.quantity.toString(), style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold)
-                FilledIconButton(onClick = onAdd, modifier = Modifier.size(30.dp),
+                FilledIconButton(onClick = onAdd, modifier = Modifier.size(dimensionResource(R.dimen.icon_size_button_small)),
                     colors = IconButtonDefaults.filledIconButtonColors(
                         containerColor = CanteenGreen,
                         contentColor = Color.White)) {
                     Icon(Icons.Default.Add, null, modifier = Modifier.size(dimensionResource(R.dimen.radius_button)))
                 }
                 Spacer(modifier = Modifier.width(dimensionResource(R.dimen.spacing_extra_small)))
-                IconButton(onClick = onDelete, modifier = Modifier.size(30.dp)) {
+                IconButton(onClick = onDelete, modifier = Modifier.size(dimensionResource(R.dimen.icon_size_button_small))) {
                     Icon(Icons.Default.Close, null,
                         tint = MaterialTheme.colorScheme.error.copy(alpha = 0.7f),
                         modifier = Modifier.size(dimensionResource(R.dimen.screen_padding)))
@@ -517,14 +518,14 @@ fun OrderSummaryCard(cartItems: List<CartItem>, total: Double) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(dimensionResource(R.dimen.radius_large)),
         colors = CardDefaults.cardColors(containerColor = CanteenGreenContainer),
-        border = BorderStroke(1.dp, CanteenGreen.copy(alpha = 0.3f))
+        border = BorderStroke(dimensionResource(R.dimen.border_width_thin), CanteenGreen.copy(alpha = 0.3f))
     ) {
         Column(modifier = Modifier.padding(dimensionResource(R.dimen.screen_padding))) {
             Text("Order Summary", style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold, color = CanteenGreen)
             Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_small)))
             cartItems.forEach { item ->
-                Row(modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp),
+                Row(modifier = Modifier.fillMaxWidth().padding(vertical = dimensionResource(R.dimen.spacing_tiny)),
                     horizontalArrangement = Arrangement.SpaceBetween) {
                     Text("${item.menuItem.name} × ${item.quantity}",
                         style = MaterialTheme.typography.bodyMedium)

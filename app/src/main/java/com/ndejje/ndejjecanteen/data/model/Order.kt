@@ -12,7 +12,6 @@ enum class OrderStatus(val displayName: String, val emoji: String) {
 }
 
 enum class PaymentMethod(val displayName: String, val emoji: String) {
-    CASH("Cash on Delivery", "💵"),
     AIRTEL_MONEY("Airtel Money", "🔴"),
     MTN_MOMO("MTN MoMo", "🟡")
 }
@@ -55,10 +54,10 @@ data class Order(
 
     val preOrderDate: String = "",
     val notes: String = "",
-    val paymentMethod: String = PaymentMethod.CASH.name,
+    val paymentMethod: String = PaymentMethod.MTN_MOMO.name,
     val paymentStatus: String = PaymentStatus.PENDING.name,
     val deliveryPersonId: String? = null,
     val deliveryPersonName: String? = null
 ) {
-    constructor() : this("", "", "", "", emptyList(), 0.0, OrderStatus.PENDING.name, System.currentTimeMillis(), System.currentTimeMillis(), null, false, "", "", PaymentMethod.CASH.name, PaymentStatus.PENDING.name, null, null)
+    constructor() : this("", "", "", "", emptyList(), 0.0, OrderStatus.PENDING.name, System.currentTimeMillis(), System.currentTimeMillis(), null, false, "", "", PaymentMethod.MTN_MOMO.name, PaymentStatus.PENDING.name, null, null)
 }

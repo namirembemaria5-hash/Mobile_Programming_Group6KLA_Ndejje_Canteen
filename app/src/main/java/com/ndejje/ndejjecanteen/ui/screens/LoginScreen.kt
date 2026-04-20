@@ -54,7 +54,16 @@ fun LoginScreen(
 
     LaunchedEffect(isLoggedIn, userProfile) {
         if (isLoggedIn && userProfile != null) {
-            onLoginSuccess(userProfile?.role ?: "USER")
+            val role = userProfile?.role ?: "USER"
+            if (role == "ADMIN") {
+                onLoginSuccess("ADMIN")
+            } else if (role == "KITCHEN") {
+                onLoginSuccess("KITCHEN")
+            } else if (role == "DELIVERY") {
+                onLoginSuccess("DELIVERY")
+            } else {
+                onNavigateToHome()
+            }
         }
     }
 
@@ -77,7 +86,10 @@ fun LoginScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .padding(
+                        horizontal = dimensionResource(R.dimen.screen_padding),
+                        vertical = dimensionResource(R.dimen.spacing_small)
+                    ),
                 horizontalArrangement = Arrangement.Start
             ) {
                 IconButton(
@@ -126,7 +138,7 @@ fun LoginScreen(
                     .padding(horizontal = dimensionResource(R.dimen.screen_padding_extra_large)),
                 shape = RoundedCornerShape(dimensionResource(R.dimen.radius_card)),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(12.dp)
+                elevation = CardDefaults.cardElevation(dimensionResource(R.dimen.elevation_extra_large))
             ) {
                 Column(
                     modifier = Modifier
@@ -249,7 +261,7 @@ fun LoginScreen(
                             CircularProgressIndicator(
                                 modifier = Modifier.size(dimensionResource(R.dimen.icon_size_medium)),
                                 color = MaterialTheme.colorScheme.onPrimary,
-                                strokeWidth = 2.dp
+                                strokeWidth = dimensionResource(R.dimen.border_width_thick)
                             )
                         } else {
                             Text(
@@ -282,7 +294,7 @@ fun LoginScreen(
 
                     TextButton(
                         onClick = onNavigateToFAQ,
-                        modifier = Modifier.padding(top = 8.dp)
+                        modifier = Modifier.padding(top = dimensionResource(R.dimen.spacing_small))
                     ) {
                         Text(
                             "Frequently Asked Questions (FAQs)",

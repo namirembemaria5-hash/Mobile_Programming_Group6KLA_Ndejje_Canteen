@@ -3,13 +3,16 @@ package com.ndejje.ndejjecanteen.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.ndejje.ndejjecanteen.R
 import com.ndejje.ndejjecanteen.ui.theme.CanteenGreen
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -36,7 +39,7 @@ fun FAQScreen(onNavigateBack: () -> Unit) {
             "3. Payment FAQs",
             listOf(
                 FAQItem("What payment methods are accepted?", "Only mobile money."),
-                FAQItem("Can I pay after delivery?", "No, cash on delivery option has been misused frequently.")
+                FAQItem("Can I pay after delivery?", "No, only prepayments via mobile money are accepted.")
             )
         ),
         FAQCategory(
@@ -78,9 +81,9 @@ fun FAQScreen(onNavigateBack: () -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = 16.dp),
-            contentPadding = PaddingValues(vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(horizontal = dimensionResource(R.dimen.screen_padding)),
+            contentPadding = PaddingValues(vertical = dimensionResource(R.dimen.screen_padding)),
+            verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_large))
         ) {
             faqCategories.forEach { category ->
                 item {
@@ -89,7 +92,7 @@ fun FAQScreen(onNavigateBack: () -> Unit) {
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = CanteenGreen,
-                        modifier = Modifier.padding(vertical = 8.dp)
+                        modifier = Modifier.padding(vertical = dimensionResource(R.dimen.spacing_small))
                     )
                 }
                 items(category.items) { faq ->
@@ -104,17 +107,17 @@ fun FAQScreen(onNavigateBack: () -> Unit) {
 fun FAQCard(faq: FAQItem) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.medium,
-        elevation = CardDefaults.cardElevation(2.dp),
+        shape = RoundedCornerShape(dimensionResource(R.dimen.radius_medium)),
+        elevation = CardDefaults.cardElevation(dimensionResource(R.dimen.elevation_small)),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f))
     ) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        Column(modifier = Modifier.padding(dimensionResource(R.dimen.screen_padding))) {
             Text(
                 text = faq.question,
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold
             )
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_small)))
             Text(
                 text = faq.answer,
                 style = MaterialTheme.typography.bodyMedium
