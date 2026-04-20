@@ -45,10 +45,8 @@ class OrderViewModel : ViewModel() {
             _orderUiState.value = OrderUiState.Loading
             
             // Simulate payment processing for Mobile Money
-            if (paymentMethod != PaymentMethod.CASH) {
-                _orderUiState.value = OrderUiState.ProcessingPayment(paymentMethod.displayName)
-                delay(3000) // 3-second simulation for MoMo prompt
-            }
+            _orderUiState.value = OrderUiState.ProcessingPayment(paymentMethod.displayName)
+            delay(3000) // 3-second simulation for MoMo prompt
 
             val orderItems = cartItems.map { 
                 OrderItem(
@@ -72,8 +70,7 @@ class OrderViewModel : ViewModel() {
                 notes = notes,
                 status = OrderStatus.PENDING.name,
                 paymentMethod = paymentMethod.name,
-                paymentStatus = if (paymentMethod == PaymentMethod.CASH) 
-                    PaymentStatus.PENDING.name else PaymentStatus.COMPLETED.name,
+                paymentStatus = PaymentStatus.COMPLETED.name,
                 createdAt = System.currentTimeMillis(),
                 updatedAt = System.currentTimeMillis()
             )

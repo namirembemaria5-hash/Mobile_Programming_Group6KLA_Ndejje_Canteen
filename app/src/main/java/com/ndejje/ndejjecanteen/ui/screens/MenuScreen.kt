@@ -119,7 +119,7 @@ fun MenuScreen(
                                 colors = CardDefaults.cardColors(
                                     containerColor = CanteenAmberContainer
                                 ),
-                                border = androidx.compose.foundation.BorderStroke(1.dp, CanteenAmber)
+                                border = androidx.compose.foundation.BorderStroke(dimensionResource(R.dimen.border_width_thin), CanteenAmber)
                             ) {
                                 Row(
                                     modifier = Modifier.padding(dimensionResource(R.dimen.radius_large)),
@@ -243,7 +243,7 @@ fun MenuItemCard(
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(dimensionResource(R.dimen.radius_large)),
-        elevation = CardDefaults.cardElevation(3.dp),
+        elevation = CardDefaults.cardElevation(dimensionResource(R.dimen.elevation_medium)),
         colors = CardDefaults.cardColors(
             containerColor = if (isUnavailable)
                 MaterialTheme.colorScheme.surface.copy(alpha = 0.6f)
@@ -286,7 +286,7 @@ fun MenuItemCard(
                                 "Weekend",
                                 style = MaterialTheme.typography.labelSmall,
                                 color = SpecialColor,
-                                modifier = Modifier.padding(horizontal = dimensionResource(R.dimen.spacing_small), vertical = 2.dp)
+                                modifier = Modifier.padding(horizontal = dimensionResource(R.dimen.spacing_small), vertical = dimensionResource(R.dimen.spacing_tiny))
                             )
                         }
                     }
@@ -297,7 +297,7 @@ fun MenuItemCard(
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.55f),
                         maxLines = 2,
-                        modifier = Modifier.padding(top = 2.dp)
+                        modifier = Modifier.padding(top = dimensionResource(R.dimen.spacing_tiny))
                     )
                 }
                 Text(
@@ -315,7 +315,7 @@ fun MenuItemCard(
                     FilledTonalButton(
                         onClick = { cartViewModel.addToCart(item) },
                         shape = RoundedCornerShape(dimensionResource(R.dimen.radius_small)),
-                        contentPadding = PaddingValues(horizontal = dimensionResource(R.dimen.radius_button), vertical = 6.dp),
+                        contentPadding = PaddingValues(horizontal = dimensionResource(R.dimen.radius_button), vertical = dimensionResource(R.dimen.spacing_small)),
                         colors = ButtonDefaults.filledTonalButtonColors(
                             containerColor = accentColor.copy(alpha = 0.15f),
                             contentColor = accentColor

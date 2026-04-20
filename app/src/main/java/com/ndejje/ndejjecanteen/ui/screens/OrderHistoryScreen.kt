@@ -13,6 +13,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ndejje.ndejjecanteen.R
@@ -30,10 +31,17 @@ import java.util.*
 fun OrderHistoryScreen(
     authViewModel: AuthViewModel,
     orderViewModel: OrderViewModel,
-    onOrderClick: (String) -> Unit
+    onOrderClick: (String) -> Unit,
+    onNavigateToLogin: () -> Unit = {}
 ) {
+    val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
     val userOrders by orderViewModel.orders.collectAsState()
     val userId = authViewModel.currentUserId
+
+    if (!isLoggedIn) {
+        GuestOrderHistoryContent(onNavigateToLogin)
+        return
+    }
 
     LaunchedEffect(userId) {
         userId?.let { orderViewModel.loadUserOrders(it) }
@@ -80,6 +88,46 @@ fun OrderHistoryScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun GuestOrderHistoryContent(onNavigateToLogin: () -> Unit) {
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("My Orders", fontWeight = FontWeight.Bold) }
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(dimensionResource(R.dimen.screen_padding_extra_large)),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text("📋", fontSize = dimensionResource(R.dimen.text_size_emoji_huge).value.sp)
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.screen_padding_extra_large)))
+            Text("Sign in to see your orders", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+            Text(
+                "Once you log in, you can track your current orders and view your purchase history.",
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                modifier = Modifier.padding(vertical = dimensionResource(R.dimen.screen_padding))
+            )
+            Button(
+                onClick = onNavigateToLogin,
+                modifier = Modifier.fillMaxWidth().height(dimensionResource(R.dimen.box_size_extra_large)),
+                shape = RoundedCornerShape(dimensionResource(R.dimen.radius_large)),
+                colors = ButtonDefaults.buttonColors(containerColor = CanteenGreen)
+            ) {
+                Text("Log In Now", style = MaterialTheme.typography.titleMedium)
+            }
+        }
+    }
+}
+
 @Composable
 fun OrderHistoryCard(order: Order, onClick: () -> Unit) {
     val status = try { OrderStatus.valueOf(order.status) } catch (e: Exception) { OrderStatus.PENDING }
@@ -98,7 +146,7 @@ fun OrderHistoryCard(order: Order, onClick: () -> Unit) {
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(dimensionResource(R.dimen.radius_large)),
-        elevation = CardDefaults.cardElevation(3.dp)
+        elevation = CardDefaults.cardElevation(dimensionResource(R.dimen.elevation_medium))
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(dimensionResource(R.dimen.screen_padding)),

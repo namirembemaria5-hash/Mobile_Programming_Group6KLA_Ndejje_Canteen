@@ -97,13 +97,29 @@ class AuthViewModel : ViewModel() {
     fun updateProfile(name: String, phone: String) {
         val uid = currentUserId ?: return
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             val success = repository.updateProfile(uid, name, phone)
             if (success) {
                 loadUserProfile(uid)
                 _uiState.value = _uiState.value.copy(isLoading = false, error = null)
             } else {
                 _uiState.value = _uiState.value.copy(isLoading = false, error = "Failed to update profile")
+            }
+        }
+    }
+
+    fun changePassword(oldPassword: String, newPassword: String, onComplete: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isLoading = true, error = null)
+            when (val result = repository.changePassword(oldPassword, newPassword)) {
+                is AuthResult.Success -> {
+                    _uiState.value = _uiState.value.copy(isLoading = false, error = null)
+                    onComplete(true)
+                }
+                is AuthResult.Error -> {
+                    _uiState.value = _uiState.value.copy(isLoading = false, error = result.message)
+                    onComplete(false)
+                }
             }
         }
     }

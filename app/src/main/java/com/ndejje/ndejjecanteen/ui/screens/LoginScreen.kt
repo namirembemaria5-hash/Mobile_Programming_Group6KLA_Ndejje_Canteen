@@ -9,6 +9,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Visibility
@@ -38,7 +39,9 @@ import com.ndejje.ndejjecanteen.ui.viewmodel.AuthViewModel
 fun LoginScreen(
     authViewModel: AuthViewModel,
     onLoginSuccess: (String) -> Unit,
-    onNavigateToRegister: () -> Unit
+    onNavigateToRegister: () -> Unit,
+    onNavigateToHome: () -> Unit,
+    onNavigateToFAQ: () -> Unit
 ) {
     val uiState by authViewModel.uiState.collectAsState()
     val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
@@ -51,7 +54,16 @@ fun LoginScreen(
 
     LaunchedEffect(isLoggedIn, userProfile) {
         if (isLoggedIn && userProfile != null) {
-            onLoginSuccess(userProfile?.role ?: "USER")
+            val role = userProfile?.role ?: "USER"
+            if (role == "ADMIN") {
+                onLoginSuccess("ADMIN")
+            } else if (role == "KITCHEN") {
+                onLoginSuccess("KITCHEN")
+            } else if (role == "DELIVERY") {
+                onLoginSuccess("DELIVERY")
+            } else {
+                onNavigateToHome()
+            }
         }
     }
 
@@ -71,7 +83,27 @@ fun LoginScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // Header section
-            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_giant)))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        horizontal = dimensionResource(R.dimen.screen_padding),
+                        vertical = dimensionResource(R.dimen.spacing_small)
+                    ),
+                horizontalArrangement = Arrangement.Start
+            ) {
+                IconButton(
+                    onClick = onNavigateToHome,
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.2f),
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                ) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Back to Home")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_large)))
             Text(
                 text = "🍽️",
                 fontSize = dimensionResource(R.dimen.text_size_emoji_large).value.sp,
@@ -106,7 +138,7 @@ fun LoginScreen(
                     .padding(horizontal = dimensionResource(R.dimen.screen_padding_extra_large)),
                 shape = RoundedCornerShape(dimensionResource(R.dimen.radius_card)),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(12.dp)
+                elevation = CardDefaults.cardElevation(dimensionResource(R.dimen.elevation_extra_large))
             ) {
                 Column(
                     modifier = Modifier
@@ -229,7 +261,7 @@ fun LoginScreen(
                             CircularProgressIndicator(
                                 modifier = Modifier.size(dimensionResource(R.dimen.icon_size_medium)),
                                 color = MaterialTheme.colorScheme.onPrimary,
-                                strokeWidth = 2.dp
+                                strokeWidth = dimensionResource(R.dimen.border_width_thick)
                             )
                         } else {
                             Text(
@@ -258,6 +290,17 @@ fun LoginScreen(
                                 color = MaterialTheme.colorScheme.primary
                             )
                         }
+                    }
+
+                    TextButton(
+                        onClick = onNavigateToFAQ,
+                        modifier = Modifier.padding(top = dimensionResource(R.dimen.spacing_small))
+                    ) {
+                        Text(
+                            "Frequently Asked Questions (FAQs)",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f)
+                        )
                     }
                 }
             }

@@ -114,7 +114,7 @@ fun DeliveryMapCard(latitude: Double, longitude: Double, onOpenMap: () -> Unit) 
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(dimensionResource(R.dimen.radius_extra_large)),
-        elevation = CardDefaults.cardElevation(4.dp)
+        elevation = CardDefaults.cardElevation(dimensionResource(R.dimen.elevation_medium))
     ) {
         Column(modifier = Modifier.padding(dimensionResource(R.dimen.screen_padding))) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -128,7 +128,7 @@ fun DeliveryMapCard(latitude: Double, longitude: Double, onOpenMap: () -> Unit) 
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(150.dp)
+                    .height(dimensionResource(R.dimen.box_size_status))
                     .clip(RoundedCornerShape(dimensionResource(R.dimen.radius_medium)))
                     .background(MaterialTheme.colorScheme.surfaceVariant),
                 contentAlignment = Alignment.Center
@@ -173,7 +173,7 @@ fun OrderStatusHero(order: Order) {
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(dimensionResource(R.dimen.radius_card)),
         colors = CardDefaults.cardColors(containerColor = bgColor),
-        elevation = CardDefaults.cardElevation(4.dp)
+        elevation = CardDefaults.cardElevation(dimensionResource(R.dimen.elevation_medium))
     ) {
         Column(
             modifier = Modifier
@@ -237,7 +237,7 @@ fun OrderProgressTracker(currentStatus: String) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(dimensionResource(R.dimen.radius_extra_large)),
-        elevation = CardDefaults.cardElevation(2.dp)
+        elevation = CardDefaults.cardElevation(dimensionResource(R.dimen.elevation_small))
     ) {
         Column(modifier = Modifier.padding(dimensionResource(R.dimen.screen_padding_large))) {
             Text("Order Progress", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
@@ -256,7 +256,7 @@ fun OrderProgressTracker(currentStatus: String) {
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(32.dp)
+                                .size(dimensionResource(R.dimen.icon_size_large))
                                 .clip(CircleShape)
                                 .background(
                                     if (isCurrent) CanteenGreen
@@ -267,10 +267,10 @@ fun OrderProgressTracker(currentStatus: String) {
                         ) {
                             Text(
                                 stepStatus.emoji,
-                                fontSize = 14.sp
+                                fontSize = dimensionResource(R.dimen.text_size_medium).value.sp
                             )
                         }
-                        Spacer(modifier = Modifier.height(6.dp))
+                        Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_extra_small)))
                         Text(
                             label,
                             style = MaterialTheme.typography.labelSmall,
@@ -283,10 +283,10 @@ fun OrderProgressTracker(currentStatus: String) {
                         HorizontalDivider(
                             modifier = Modifier
                                 .weight(0.5f)
-                                .padding(bottom = 24.dp),
+                                .padding(bottom = dimensionResource(R.dimen.spacing_extra_large)),
                             color = if (index < currentIndex) CanteenGreenLight
                             else MaterialTheme.colorScheme.surfaceVariant,
-                            thickness = 2.dp
+                            thickness = dimensionResource(R.dimen.border_width_thick)
                         )
                     }
                 }
@@ -300,7 +300,7 @@ fun OrderDetailsCard(order: Order) {
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(dimensionResource(R.dimen.radius_extra_large)),
-        elevation = CardDefaults.cardElevation(2.dp)
+        elevation = CardDefaults.cardElevation(dimensionResource(R.dimen.elevation_small))
     ) {
         Column(modifier = Modifier.padding(dimensionResource(R.dimen.screen_padding_large))) {
             Text("Order Items", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)

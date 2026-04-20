@@ -1,13 +1,16 @@
 package com.ndejje.ndejjecanteen.ui.screens
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Help
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,6 +20,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ndejje.ndejjecanteen.R
@@ -27,16 +34,32 @@ import com.ndejje.ndejjecanteen.ui.viewmodel.AuthViewModel
 @Composable
 fun ProfileScreen(
     authViewModel: AuthViewModel,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onNavigateToFAQ: () -> Unit,
+    onNavigateToLogin: () -> Unit = {}
 ) {
+    val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
     val userProfile by authViewModel.userProfile.collectAsState()
     val uiState by authViewModel.uiState.collectAsState()
     val currentEmail = authViewModel.currentUserEmail ?: ""
 
+    if (!isLoggedIn) {
+        GuestProfileContent(onNavigateToLogin, onNavigateToFAQ)
+        return
+    }
+
     var isEditing by remember { mutableStateOf(false) }
-    var editName by remember { mutableStateOf(userProfile?.name ?: "") }
-    var editPhone by remember { mutableStateOf(userProfile?.phone ?: "") }
+    var editName by remember { mutableStateOf("") }
+    var editPhone by remember { mutableStateOf("") }
+    
+    var isChangingPassword by remember { mutableStateOf(false) }
+    var oldPassword by remember { mutableStateOf("") }
+    var newPassword by remember { mutableStateOf("") }
+    var repeatPassword by remember { mutableStateOf("") }
+    
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var showPasswordConfirmDialog by remember { mutableStateOf(false) }
+    var passwordVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(userProfile) {
         userProfile?.let {
@@ -51,7 +74,7 @@ fun ProfileScreen(
                 title = { Text("My Profile", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold) },
                 actions = {
                     IconButton(onClick = { showLogoutDialog = true }) {
-                        Icon(Icons.Default.Logout, contentDescription = "Logout", tint = MaterialTheme.colorScheme.error)
+                        Icon(Icons.AutoMirrored.Filled.Logout, contentDescription = "Logout", tint = MaterialTheme.colorScheme.error)
                     }
                 }
             )
@@ -68,14 +91,14 @@ fun ProfileScreen(
             // Profile Header
             Box(
                 modifier = Modifier
-                    .size(100.dp)
+                    .size(dimensionResource(R.dimen.image_size_medium))
                     .clip(CircleShape)
                     .background(CanteenGreen.copy(alpha = 0.1f)),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = (userProfile?.name?.take(1) ?: "S").uppercase(),
-                    fontSize = 40.sp,
+                    fontSize = dimensionResource(R.dimen.text_size_heading_large).value.sp,
                     fontWeight = FontWeight.Bold,
                     color = CanteenGreen
                 )
@@ -84,7 +107,7 @@ fun ProfileScreen(
             Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_large)))
 
             Text(
-                text = userProfile?.name ?: "Student Name",
+                text = userProfile?.name ?: "User",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold
             )
@@ -96,11 +119,29 @@ fun ProfileScreen(
 
             Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_huge)))
 
+            // Error Display
+            uiState.error?.let { error ->
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                    modifier = Modifier.fillMaxWidth().padding(bottom = dimensionResource(R.dimen.spacing_large))
+                ) {
+                    Row(Modifier.padding(dimensionResource(R.dimen.spacing_medium)), verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Error, null, tint = MaterialTheme.colorScheme.error)
+                        Spacer(Modifier.width(dimensionResource(R.dimen.spacing_small)))
+                        Text(error, color = MaterialTheme.colorScheme.onErrorContainer, style = MaterialTheme.typography.bodySmall)
+                        Spacer(Modifier.weight(1f))
+                        IconButton(onClick = { authViewModel.clearError() }) {
+                            Icon(Icons.Default.Close, null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(dimensionResource(R.dimen.icon_size_small)))
+                        }
+                    }
+                }
+            }
+
             // Info Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(dimensionResource(R.dimen.radius_extra_large)),
-                elevation = CardDefaults.cardElevation(2.dp)
+                elevation = CardDefaults.cardElevation(dimensionResource(R.dimen.elevation_small))
             ) {
                 Column(modifier = Modifier.padding(dimensionResource(R.dimen.screen_padding_large))) {
                     Row(
@@ -109,7 +150,7 @@ fun ProfileScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text("Personal Information", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-                        if (!isEditing) {
+                        if (!isEditing && !isChangingPassword) {
                             TextButton(onClick = { isEditing = true }) {
                                 Text("Edit")
                             }
@@ -131,7 +172,8 @@ fun ProfileScreen(
                             onValueChange = { editPhone = it },
                             label = { Text("Phone Number") },
                             modifier = Modifier.fillMaxWidth().padding(bottom = dimensionResource(R.dimen.spacing_large)),
-                            shape = RoundedCornerShape(dimensionResource(R.dimen.radius_medium))
+                            shape = RoundedCornerShape(dimensionResource(R.dimen.radius_medium)),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
                         )
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -153,10 +195,15 @@ fun ProfileScreen(
                                 shape = RoundedCornerShape(dimensionResource(R.dimen.radius_medium)),
                                 colors = ButtonDefaults.buttonColors(containerColor = CanteenGreen)
                             ) {
-                                Text("Save")
+                                if (uiState.isLoading) CircularProgressIndicator(
+                                    modifier = Modifier.size(dimensionResource(R.dimen.icon_size_small)),
+                                    color = Color.White,
+                                    strokeWidth = dimensionResource(R.dimen.border_width_thick)
+                                )
+                                else Text("Save")
                             }
                         }
-                    } else {
+                    } else if (!isChangingPassword) {
                         ProfileInfoItem(icon = Icons.Default.Person, label = "Name", value = userProfile?.name ?: "-")
                         HorizontalDivider(modifier = Modifier.padding(vertical = dimensionResource(R.dimen.spacing_medium)), color = MaterialTheme.colorScheme.surfaceVariant)
                         ProfileInfoItem(icon = Icons.Default.Phone, label = "Phone", value = userProfile?.phone ?: "-")
@@ -166,9 +213,98 @@ fun ProfileScreen(
                 }
             }
 
-            // Success message
-            AnimatedVisibility(visible = uiState.error == null && uiState.isLoading == false && !isEditing) {
-                // You could show a snackbar or small toast-like card here
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_large)))
+
+            // Password Security Card
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(dimensionResource(R.dimen.radius_extra_large)),
+                elevation = CardDefaults.cardElevation(dimensionResource(R.dimen.elevation_small))
+            ) {
+                Column(modifier = Modifier.padding(dimensionResource(R.dimen.screen_padding_large))) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Security", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        if (!isChangingPassword && !isEditing) {
+                            TextButton(onClick = { isChangingPassword = true }) {
+                                Text("Change Password")
+                            }
+                        }
+                    }
+
+                    if (isChangingPassword) {
+                        Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_large)))
+                        
+                        OutlinedTextField(
+                            value = oldPassword,
+                            onValueChange = { oldPassword = it },
+                            label = { Text("Old Password") },
+                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            modifier = Modifier.fillMaxWidth().padding(bottom = dimensionResource(R.dimen.spacing_small)),
+                            trailingIcon = {
+                                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                    Icon(if (passwordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility, null)
+                                }
+                            }
+                        )
+
+                        OutlinedTextField(
+                            value = newPassword,
+                            onValueChange = { newPassword = it },
+                            label = { Text("New Password") },
+                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            modifier = Modifier.fillMaxWidth().padding(bottom = dimensionResource(R.dimen.spacing_small))
+                        )
+
+                        OutlinedTextField(
+                            value = repeatPassword,
+                            onValueChange = { repeatPassword = it },
+                            label = { Text("Repeat New Password") },
+                            visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                            modifier = Modifier.fillMaxWidth().padding(bottom = dimensionResource(R.dimen.spacing_large)),
+                            isError = repeatPassword.isNotEmpty() && repeatPassword != newPassword,
+                            supportingText = {
+                                if (repeatPassword.isNotEmpty() && repeatPassword != newPassword) {
+                                    Text("Passwords do not match", color = MaterialTheme.colorScheme.error)
+                                }
+                            }
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_small))
+                        ) {
+                            OutlinedButton(
+                                onClick = { 
+                                    isChangingPassword = false
+                                    oldPassword = ""; newPassword = ""; repeatPassword = ""
+                                },
+                                modifier = Modifier.weight(1f)
+                            ) { Text("Cancel") }
+                            
+                            Button(
+                                onClick = {
+                                    if (newPassword == repeatPassword && newPassword.isNotEmpty() && oldPassword.isNotEmpty()) {
+                                        showPasswordConfirmDialog = true
+                                    }
+                                },
+                                modifier = Modifier.weight(1f),
+                                enabled = newPassword == repeatPassword && newPassword.isNotEmpty() && oldPassword.isNotEmpty(),
+                                colors = ButtonDefaults.buttonColors(containerColor = CanteenGreen)
+                            ) { Text("Update") }
+                        }
+                    } else {
+                        Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_small)))
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Lock, null, tint = CanteenGreen, modifier = Modifier.size(dimensionResource(R.dimen.radius_extra_large)))
+                            Spacer(Modifier.width(dimensionResource(R.dimen.spacing_medium)))
+                            Text("Password last changed: Recently", style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                }
             }
 
             Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_extra_large)))
@@ -177,22 +313,62 @@ fun ProfileScreen(
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(dimensionResource(R.dimen.radius_extra_large)),
-                elevation = CardDefaults.cardElevation(2.dp)
+                elevation = CardDefaults.cardElevation(dimensionResource(R.dimen.elevation_small))
             ) {
                 Column(modifier = Modifier.padding(dimensionResource(R.dimen.screen_padding_large))) {
                     Text("Support", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_medium)))
-                    ProfileInfoItem(icon = Icons.Default.Help, label = "Help Center", value = "FAQs & Contact")
-                    HorizontalDivider(modifier = Modifier.padding(vertical = dimensionResource(R.dimen.spacing_medium)), color = MaterialTheme.colorScheme.surfaceVariant)
+                    
+                    if (userProfile?.role == "USER") {
+                        ProfileInfoItem(
+                            icon = Icons.AutoMirrored.Filled.Help,
+                            label = "Help Center",
+                            value = "FAQs & Contact",
+                            onClick = onNavigateToFAQ
+                        )
+                        HorizontalDivider(modifier = Modifier.padding(vertical = dimensionResource(R.dimen.spacing_medium)), color = MaterialTheme.colorScheme.surfaceVariant)
+                    }
+
                     ProfileInfoItem(icon = Icons.Default.Info, label = "App Version", value = "1.0.0")
                 }
             }
         }
     }
 
+    if (showPasswordConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { 
+                showPasswordConfirmDialog = false 
+            },
+            title = { Text("Confirm Password Change") },
+            text = { Text("Are you sure you want to change your password? You will need to use your new password next time you log in.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        authViewModel.changePassword(oldPassword, newPassword) { success ->
+                            if (success) {
+                                isChangingPassword = false
+                                oldPassword = ""; newPassword = ""; repeatPassword = ""
+                            }
+                        }
+                        showPasswordConfirmDialog = false
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = CanteenGreen)
+                ) { Text("Yes, Change It") }
+            },
+            dismissButton = {
+                TextButton(onClick = { 
+                    showPasswordConfirmDialog = false 
+                }) { Text("No, Keep Old") }
+            }
+        )
+    }
+
     if (showLogoutDialog) {
         AlertDialog(
-            onDismissRequest = { showLogoutDialog = false },
+            onDismissRequest = { 
+                showLogoutDialog = false 
+            },
             title = { Text("Logout?") },
             text = { Text("Are you sure you want to sign out of your account?") },
             confirmButton = {
@@ -201,15 +377,95 @@ fun ProfileScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showLogoutDialog = false }) { Text("Cancel") }
+                TextButton(onClick = { 
+                    showLogoutDialog = false 
+                }) { Text("Cancel") }
             }
         )
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ProfileInfoItem(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, value: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+fun GuestProfileContent(onNavigateToLogin: () -> Unit, onNavigateToFAQ: () -> Unit) {
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("Profile", fontWeight = FontWeight.Bold) }
+            )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(dimensionResource(R.dimen.screen_padding_extra_large)),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(dimensionResource(R.dimen.image_size_large))
+                    .clip(CircleShape)
+                    .background(CanteenGreen.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Default.Person,
+                    contentDescription = null,
+                    modifier = Modifier.size(dimensionResource(R.dimen.image_size_small)),
+                    tint = CanteenGreen
+                )
+            }
+
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_extra_large)))
+
+            Text(
+                "Guest Mode",
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                "Sign in to access your order history, manage your profile, and speed up your checkout process.",
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                modifier = Modifier.padding(vertical = dimensionResource(R.dimen.spacing_large))
+            )
+
+            Button(
+                onClick = onNavigateToLogin,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(dimensionResource(R.dimen.button_height_standard)),
+                shape = RoundedCornerShape(dimensionResource(R.dimen.radius_large)),
+                colors = ButtonDefaults.buttonColors(containerColor = CanteenGreen)
+            ) {
+                Text("Sign In / Register", style = MaterialTheme.typography.titleMedium)
+            }
+
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_large)))
+
+            OutlinedButton(
+                onClick = onNavigateToFAQ,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(dimensionResource(R.dimen.button_height_standard)),
+                shape = RoundedCornerShape(dimensionResource(R.dimen.radius_large))
+            ) {
+                Text("View FAQs", style = MaterialTheme.typography.titleMedium)
+            }
+        }
+    }
+}
+
+@Composable
+fun ProfileInfoItem(icon: androidx.compose.ui.graphics.vector.ImageVector, label: String, value: String, onClick: (() -> Unit)? = null) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = if (onClick != null) Modifier.fillMaxWidth().clickable { onClick() } else Modifier
+    ) {
         Icon(icon, contentDescription = null, tint = CanteenGreen, modifier = Modifier.size(dimensionResource(R.dimen.icon_size_small)))
         Spacer(modifier = Modifier.width(dimensionResource(R.dimen.spacing_medium)))
         Column {

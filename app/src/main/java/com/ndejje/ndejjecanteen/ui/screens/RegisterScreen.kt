@@ -9,6 +9,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -35,7 +36,9 @@ import com.ndejje.ndejjecanteen.ui.viewmodel.AuthViewModel
 fun RegisterScreen(
     authViewModel: AuthViewModel,
     onRegisterSuccess: () -> Unit,
-    onNavigateToLogin: () -> Unit
+    onNavigateToLogin: () -> Unit,
+    onNavigateToHome: () -> Unit,
+    onNavigateToFAQ: () -> Unit
 ) {
     val uiState by authViewModel.uiState.collectAsState()
     val isLoggedIn by authViewModel.isLoggedIn.collectAsState()
@@ -69,7 +72,28 @@ fun RegisterScreen(
                 .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_giant)))
+            // Header section
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        horizontal = dimensionResource(R.dimen.screen_padding),
+                        vertical = dimensionResource(R.dimen.spacing_small)
+                    ),
+                horizontalArrangement = Arrangement.Start
+            ) {
+                IconButton(
+                    onClick = onNavigateToHome,
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.2f),
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                ) {
+                    Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back to Home")
+                }
+            }
+
+            Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_large)))
             Text(
                 text = "🍳",
                 fontSize = dimensionResource(R.dimen.text_size_emoji_large).value.sp,
@@ -94,7 +118,7 @@ fun RegisterScreen(
                     .padding(horizontal = dimensionResource(R.dimen.screen_padding_extra_large)),
                 shape = RoundedCornerShape(dimensionResource(R.dimen.radius_card)),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                elevation = CardDefaults.cardElevation(8.dp)
+                elevation = CardDefaults.cardElevation(dimensionResource(R.dimen.elevation_medium))
             ) {
                 Column(
                     modifier = Modifier
@@ -205,7 +229,11 @@ fun RegisterScreen(
                         enabled = !uiState.isLoading,
                         colors = ButtonDefaults.buttonColors(containerColor = CanteenGreen)
                     ) {
-                        if (uiState.isLoading) CircularProgressIndicator(modifier = Modifier.size(dimensionResource(R.dimen.icon_size_medium)), color = Color.White, strokeWidth = 2.dp)
+                        if (uiState.isLoading) CircularProgressIndicator(
+                            modifier = Modifier.size(dimensionResource(R.dimen.icon_size_medium)),
+                            color = Color.White,
+                            strokeWidth = dimensionResource(R.dimen.border_width_medium)
+                        )
                         else Text("Create Account", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     }
 
@@ -216,6 +244,17 @@ fun RegisterScreen(
                         TextButton(onClick = onNavigateToLogin) {
                             Text("Sign In", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = CanteenGreen)
                         }
+                    }
+
+                    TextButton(
+                        onClick = onNavigateToFAQ,
+                        modifier = Modifier.padding(top = dimensionResource(R.dimen.spacing_small))
+                    ) {
+                        Text(
+                            "Frequently Asked Questions (FAQs)",
+                            style = MaterialTheme.typography.labelLarge,
+                            color = CanteenGreen.copy(alpha = 0.7f)
+                        )
                     }
                 }
             }

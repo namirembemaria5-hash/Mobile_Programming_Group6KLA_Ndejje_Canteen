@@ -20,7 +20,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.ndejje.ndejjecanteen.R
 import com.ndejje.ndejjecanteen.data.model.MenuCategory
@@ -233,11 +232,11 @@ fun CategoryCard(
             .aspectRatio(1.1f)
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(dimensionResource(R.dimen.radius_extra_large)),
-        elevation = CardDefaults.cardElevation(4.dp),
+        elevation = CardDefaults.cardElevation(dimensionResource(R.dimen.elevation_medium)),
         colors = CardDefaults.cardColors(
             containerColor = cardData.color.copy(alpha = 0.12f)
         ),
-        border = BorderStroke(1.5.dp, cardData.color.copy(alpha = 0.3f))
+        border = BorderStroke(dimensionResource(R.dimen.border_width_medium), cardData.color.copy(alpha = 0.3f))
     ) {
         Column(
             modifier = Modifier
@@ -282,7 +281,7 @@ fun DailySpecialsBanner(specials: List<MenuItem>) {
             ),
         shape = RoundedCornerShape(dimensionResource(R.dimen.radius_extra_large)),
         colors = CardDefaults.cardColors(containerColor = CanteenAmberContainer),
-        border = BorderStroke(1.5.dp, CanteenAmber.copy(alpha = 0.5f))
+        border = BorderStroke(dimensionResource(R.dimen.border_width_medium), CanteenAmber.copy(alpha = 0.5f))
     ) {
         Column(modifier = Modifier.padding(dimensionResource(R.dimen.spacing_large))) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -323,9 +322,9 @@ fun DailySpecialsBanner(specials: List<MenuItem>) {
 @Composable
 fun FavouriteItemCard(name: String, emoji: String, price: String) {
     Card(
-        modifier = Modifier.width(120.dp),
+        modifier = Modifier.width(dimensionResource(R.dimen.image_size_large)),
         shape = RoundedCornerShape(dimensionResource(R.dimen.radius_large)),
-        elevation = CardDefaults.cardElevation(3.dp),
+        elevation = CardDefaults.cardElevation(dimensionResource(R.dimen.elevation_small)),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(
@@ -352,7 +351,7 @@ fun WeekendSpecialBanner(onClick: () -> Unit) {
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(dimensionResource(R.dimen.radius_extra_large)),
         colors = CardDefaults.cardColors(containerColor = SpecialColor.copy(alpha = 0.1f)),
-        border = BorderStroke(2.dp, SpecialColor.copy(alpha = 0.4f))
+        border = BorderStroke(dimensionResource(R.dimen.border_width_thick), SpecialColor.copy(alpha = 0.4f))
     ) {
         Row(
             modifier = Modifier.padding(dimensionResource(R.dimen.spacing_large)),

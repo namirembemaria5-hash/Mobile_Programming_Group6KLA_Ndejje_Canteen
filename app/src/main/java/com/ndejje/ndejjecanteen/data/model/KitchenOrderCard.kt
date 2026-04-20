@@ -11,14 +11,16 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.unit.dp
+import com.ndejje.ndejjecanteen.R
 
 @Composable
 fun KitchenOrderCard(order: Order, onStatusChange: (OrderStatus) -> Unit) {
     Card(modifier = Modifier
         .fillMaxWidth()
-        .padding(8.dp)) {
-        Column(modifier = Modifier.padding(16.dp)) {
+        .padding(dimensionResource(R.dimen.spacing_small))) {
+        Column(modifier = Modifier.padding(dimensionResource(R.dimen.spacing_large))) {
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
@@ -31,7 +33,7 @@ fun KitchenOrderCard(order: Order, onStatusChange: (OrderStatus) -> Unit) {
                 Text("• ${item.quantity}x ${item.itemName}")
             }
 
-            Row(modifier = Modifier.padding(top = 8.dp)) {
+            Row(modifier = Modifier.padding(top = dimensionResource(R.dimen.spacing_small))) {
                 if (order.status == OrderStatus.PENDING.name) {
                     Button(onClick = { onStatusChange(OrderStatus.PREPARING) }) {
                         Text("Start Preparing")
