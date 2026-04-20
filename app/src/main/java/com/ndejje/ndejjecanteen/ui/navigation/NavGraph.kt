@@ -74,11 +74,6 @@ fun CanteenNavGraph(
                 },
                 onNavigateToRegister = {
                     navController.navigate(Screen.Register.route)
-                },
-                onNavigateToHome = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Home.route) { inclusive = true }
-                    }
                 }
             )
         }
@@ -93,11 +88,6 @@ fun CanteenNavGraph(
                 },
                 onNavigateToLogin = {
                     navController.navigate(Screen.Login.route)
-                },
-                onNavigateToHome = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Home.route) { inclusive = true }
-                    }
                 }
             )
         }
@@ -105,7 +95,10 @@ fun CanteenNavGraph(
         composable(Screen.Orders.route) {
             if (!isLoggedIn) {
                 LaunchedEffect(Unit) {
-                    navController.navigate(Screen.Login.route)
+                    navController.navigate(Screen.Login.route) {
+                        // Pop up to the home destination to avoid the login loop
+                        popUpTo(Screen.Home.route)
+                    }
                 }
             } else {
                 OrderHistoryScreen(
@@ -130,7 +123,10 @@ fun CanteenNavGraph(
         composable(Screen.Profile.route) {
             if (!isLoggedIn) {
                 LaunchedEffect(Unit) {
-                    navController.navigate(Screen.Login.route)
+                    navController.navigate(Screen.Login.route) {
+                        // Pop up to the home destination to avoid the login loop
+                        popUpTo(Screen.Home.route)
+                    }
                 }
             } else {
                 ProfileScreen(
@@ -147,6 +143,10 @@ fun CanteenNavGraph(
             }
         }
 
+        composable(Screen.FAQ.route) {
+            FAQScreen(onNavigateBack = { navController.popBackStack() })
+        }
+
         // Management Routes
         composable(Screen.AdminDashboard.route) {
             AdminDashboardScreen(
@@ -158,18 +158,30 @@ fun CanteenNavGraph(
                     }
                     authViewModel.signOut()
                     cartViewModel.clearCart()
+                },
+                onNavigateToFAQ = {
+                    navController.navigate(Screen.FAQ.route)
                 }
             )
         }
         composable(Screen.KitchenOrders.route) {
             val userProfile by authViewModel.userProfile.collectAsState()
             val isAdmin = userProfile?.role == "ADMIN"
-            KitchenOrdersScreen(managementViewModel, isAdmin = isAdmin)
+            KitchenOrdersScreen(
+                viewModel = managementViewModel,
+                isAdmin = isAdmin,
+                onNavigateToFAQ = {
+                    navController.navigate(Screen.FAQ.route)
+                }
+            )
         }
         composable(Screen.DeliveryOrders.route) {
             val userProfile by authViewModel.userProfile.collectAsState()
             val isAdmin = userProfile?.role == "ADMIN"
-            DeliveryOrdersScreen(managementViewModel, isAdmin = isAdmin)
+            DeliveryOrdersScreen(
+                viewModel = managementViewModel,
+                isAdmin = isAdmin
+            )
         }
     }
 }
