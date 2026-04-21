@@ -53,7 +53,7 @@ fun CanteenNavGraph(
                     navController.navigate(Screen.Orders.route) {
                         popUpTo(Screen.Home.route)
                     }
-                },
+                },  //handle the new navigation logic introduced.
                 onRequireLogin = {
                     navController.navigate(Screen.Login.route)
                 }
