@@ -20,6 +20,7 @@ sealed class Screen(val route: String) {
     }
     object Orders : Screen("orders")
     object Profile : Screen("profile")
+    object FAQ : Screen("faq")
 
     // Management
     object AdminDashboard : Screen("admin_dashboard")
@@ -41,7 +42,7 @@ val bottomNavItems = listOf(
 )
 
 val adminNavItems = listOf(
-    BottomNavItem("Dashboard", Icons.Default.Dashboard, Screen.AdminDashboard.route),
+    BottomNavItem("Home", Icons.Default.Home, Screen.AdminDashboard.route),
     BottomNavItem("Kitchen", Icons.Default.Restaurant, Screen.KitchenOrders.route),
     BottomNavItem("Delivery", Icons.Default.LocalShipping, Screen.DeliveryOrders.route),
     BottomNavItem("Profile", Icons.Default.Person, Screen.Profile.route)

@@ -23,7 +23,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import java.util.*
 import com.ndejje.ndejjecanteen.R
 import com.ndejje.ndejjecanteen.data.model.Order
 import com.ndejje.ndejjecanteen.data.model.OrderStatus
@@ -36,10 +36,32 @@ import com.ndejje.ndejjecanteen.utils.formatUGX
 @Composable
 fun AdminDashboardScreen(
     viewModel: ManagementViewModel,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onNavigateToFAQ: () -> Unit
 ) {
     val analytics by viewModel.analytics.collectAsState()
+    val allOrders by viewModel.allOrders.collectAsState()
     val isLoading by viewModel.isLoading.collectAsState()
+
+    var showOrdersDialog by remember { mutableStateOf(false) }
+    var dialogTitle by remember { mutableStateOf("") }
+    var filteredOrders by remember { mutableStateOf<List<Order>>(emptyList()) }
+
+    val todayMillis = remember {
+        Calendar.getInstance().apply {
+            set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+    }
+    val weekMillis = remember {
+        Calendar.getInstance().apply {
+            set(Calendar.DAY_OF_WEEK, firstDayOfWeek); set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+    }
+    val monthMillis = remember {
+        Calendar.getInstance().apply {
+            set(Calendar.DAY_OF_MONTH, 1); set(Calendar.HOUR_OF_DAY, 0); set(Calendar.MINUTE, 0); set(Calendar.SECOND, 0); set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+    }
 
     Scaffold(
         topBar = {
@@ -61,41 +83,118 @@ fun AdminDashboardScreen(
                 verticalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_large))
             ) {
                 item {
-                    Text("Daily Analytics", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                    Row(
-                        Modifier.fillMaxWidth().padding(vertical = dimensionResource(R.dimen.spacing_small)), 
-                        horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_small))
-                    ) {
-                        StatCard("Orders", analytics.dailyCount.toString(), Icons.Default.Receipt, Color.Blue, Modifier.weight(1f))
-                        StatCard("Revenue", formatUGX(analytics.dailyRevenue), Icons.Default.Payments, CanteenGreen, Modifier.weight(1f))
-                    }
+                    AnalyticsSection(
+                        title = "Daily Analytics",
+                        orderCount = analytics.dailyCount,
+                        revenue = analytics.dailyRevenue,
+                        onOrdersClick = {
+                            dialogTitle = "Orders - Today"
+                            filteredOrders = allOrders.filter { it.createdAt >= todayMillis }
+                            showOrdersDialog = true
+                        },
+                        onRevenueClick = {
+                            dialogTitle = "Revenue - Today"
+                            filteredOrders = allOrders.filter { it.createdAt >= todayMillis }
+                            showOrdersDialog = true
+                        }
+                    )
                 }
                 
                 item {
-                    Text("Weekly Analytics", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                    Row(
-                        Modifier.fillMaxWidth().padding(vertical = dimensionResource(R.dimen.spacing_small)), 
-                        horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_small))
-                    ) {
-                        StatCard("Orders", analytics.weeklyCount.toString(), Icons.Default.BarChart, Color.Magenta, Modifier.weight(1f))
-                        StatCard("Revenue", formatUGX(analytics.weeklyRevenue), Icons.Default.Payments, CanteenGreen, Modifier.weight(1f))
-                    }
+                    AnalyticsSection(
+                        title = "Weekly Analytics",
+                        orderCount = analytics.weeklyCount,
+                        revenue = analytics.weeklyRevenue,
+                        onOrdersClick = {
+                            dialogTitle = "Orders - This Week"
+                            filteredOrders = allOrders.filter { it.createdAt >= weekMillis }
+                            showOrdersDialog = true
+                        },
+                        onRevenueClick = {
+                            dialogTitle = "Revenue - This Week"
+                            filteredOrders = allOrders.filter { it.createdAt >= weekMillis }
+                            showOrdersDialog = true
+                        }
+                    )
                 }
 
                 item {
-                    Text("Monthly Analytics", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-                    Row(
-                        Modifier.fillMaxWidth().padding(vertical = dimensionResource(R.dimen.spacing_small)), 
-                        horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_small))
-                    ) {
-                        StatCard("Orders", analytics.monthlyCount.toString(), Icons.Default.PieChart, CanteenAmber, Modifier.weight(1f))
-                        StatCard("Revenue", formatUGX(analytics.monthlyRevenue), Icons.Default.Payments, CanteenGreen, Modifier.weight(1f))
-                    }
+                    AnalyticsSection(
+                        title = "Monthly Analytics",
+                        orderCount = analytics.monthlyCount,
+                        revenue = analytics.monthlyRevenue,
+                        onOrdersClick = {
+                            dialogTitle = "Orders - This Month"
+                            filteredOrders = allOrders.filter { it.createdAt >= monthMillis }
+                            showOrdersDialog = true
+                        },
+                        onRevenueClick = {
+                            dialogTitle = "Revenue - This Month"
+                            filteredOrders = allOrders.filter { it.createdAt >= monthMillis }
+                            showOrdersDialog = true
+                        }
+                    )
                 }
             }
         }
     }
+
+    if (showOrdersDialog) {
+        AlertDialog(
+            onDismissRequest = { showOrdersDialog = false },
+            title = { Text("$dialogTitle (${filteredOrders.size})") },
+            text = {
+                Box(modifier = Modifier.heightIn(max = 450.dp)) {
+                    if (filteredOrders.isEmpty()) {
+                        Text("No data found for this period.")
+                    } else {
+                        LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(filteredOrders.sortedByDescending { it.createdAt }) { order ->
+                                ManagementOrderCard(order = order, onClick = {})
+                            }
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showOrdersDialog = false }) { Text("Close") }
+            }
+        )
+    }
 }
+
+@Composable
+fun AnalyticsSection(
+    title: String,
+    orderCount: Int,
+    revenue: Double,
+    onOrdersClick: () -> Unit,
+    onRevenueClick: () -> Unit
+) {
+    Column {
+        Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
+        Row(
+            Modifier.fillMaxWidth().padding(vertical = dimensionResource(R.dimen.spacing_small)), 
+            horizontalArrangement = Arrangement.spacedBy(dimensionResource(R.dimen.spacing_small))
+        ) {
+            StatCard(
+                label = "Orders", 
+                value = orderCount.toString(), 
+                icon = Icons.Default.Receipt, 
+                color = Color.Blue, 
+                modifier = Modifier.weight(1f).clickable { onOrdersClick() }
+            )
+            StatCard(
+                label = "Revenue", 
+                value = formatUGX(revenue), 
+                icon = Icons.Default.Payments, 
+                color = CanteenGreen, 
+                modifier = Modifier.weight(1f).clickable { onRevenueClick() }
+            )
+        }
+    }
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -145,6 +244,30 @@ fun KitchenOrdersScreen(viewModel: ManagementViewModel) {
                             item = item,
                             onToggle = { isAvailable -> viewModel.toggleItemAvailability(item.id, isAvailable) }
                         )
+                    }
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(dimensionResource(R.dimen.spacing_large)))
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(dimensionResource(R.dimen.radius_extra_large)),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(Icons.Default.Help, null, tint = CanteenGreen)
+                                Spacer(Modifier.width(12.dp))
+                                Text("Need help? Check FAQs", style = MaterialTheme.typography.bodyMedium)
+                            }
+                            TextButton(onClick = onNavigateToFAQ) {
+                                Text("View")
+                            }
+                        }
                     }
                 }
             }

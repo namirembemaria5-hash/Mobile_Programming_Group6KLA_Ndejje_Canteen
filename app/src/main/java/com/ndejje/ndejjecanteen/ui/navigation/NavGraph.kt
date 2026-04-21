@@ -95,7 +95,10 @@ fun CanteenNavGraph(
         composable(Screen.Orders.route) {
             if (!isLoggedIn) {
                 LaunchedEffect(Unit) {
-                    navController.navigate(Screen.Login.route)
+                    navController.navigate(Screen.Login.route) {
+                        // Pop up to the home destination to avoid the login loop
+                        popUpTo(Screen.Home.route)
+                    }
                 }
             } else {
                 OrderHistoryScreen(
@@ -120,20 +123,28 @@ fun CanteenNavGraph(
         composable(Screen.Profile.route) {
             if (!isLoggedIn) {
                 LaunchedEffect(Unit) {
-                    navController.navigate(Screen.Login.route)
+                    navController.navigate(Screen.Login.route) {
+                        // Pop up to the home destination to avoid the login loop
+                        popUpTo(Screen.Home.route)
+                    }
                 }
             } else {
                 ProfileScreen(
                     authViewModel = authViewModel,
                     onLogout = {
-                        authViewModel.signOut()
-                        cartViewModel.clearCart()
+                        // Navigate to Home FIRST to avoid the redirect-to-login logic
                         navController.navigate(Screen.Home.route) {
                             popUpTo(0) { inclusive = true }
                         }
+                        authViewModel.signOut()
+                        cartViewModel.clearCart()
                     }
                 )
             }
+        }
+
+        composable(Screen.FAQ.route) {
+            FAQScreen(onNavigateBack = { navController.popBackStack() })
         }
 
         // Management Routes
@@ -141,19 +152,36 @@ fun CanteenNavGraph(
             AdminDashboardScreen(
                 viewModel = managementViewModel,
                 onLogout = {
-                    authViewModel.signOut()
-                    cartViewModel.clearCart()
+                    // Navigate to Home FIRST
                     navController.navigate(Screen.Home.route) {
                         popUpTo(0) { inclusive = true }
                     }
+                    authViewModel.signOut()
+                    cartViewModel.clearCart()
+                },
+                onNavigateToFAQ = {
+                    navController.navigate(Screen.FAQ.route)
                 }
             )
         }
         composable(Screen.KitchenOrders.route) {
-            KitchenOrdersScreen(managementViewModel)
+            val userProfile by authViewModel.userProfile.collectAsState()
+            val isAdmin = userProfile?.role == "ADMIN"
+            KitchenOrdersScreen(
+                viewModel = managementViewModel,
+                isAdmin = isAdmin,
+                onNavigateToFAQ = {
+                    navController.navigate(Screen.FAQ.route)
+                }
+            )
         }
         composable(Screen.DeliveryOrders.route) {
-            DeliveryOrdersScreen(managementViewModel)
+            val userProfile by authViewModel.userProfile.collectAsState()
+            val isAdmin = userProfile?.role == "ADMIN"
+            DeliveryOrdersScreen(
+                viewModel = managementViewModel,
+                isAdmin = isAdmin
+            )
         }
     }
 }
