@@ -27,7 +27,7 @@ import com.ndejje.ndejjecanteen.ui.viewmodel.AuthViewModel
 @Composable
 fun ProfileScreen(
     authViewModel: AuthViewModel,
-    onLogout: () -> Unit
+    onLogout: () -> Unit // Navigate to Home FIRST to avoid the redirect-to-login logic
 ) {
     val userProfile by authViewModel.userProfile.collectAsState()
     val uiState by authViewModel.uiState.collectAsState()
